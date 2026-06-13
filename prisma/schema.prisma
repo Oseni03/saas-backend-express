@@ -1,0 +1,201 @@
+// Prisma schema — single source of truth for DB models + migrations
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ──────────────────────────────────────────────────────────────
+
+enum OAuthProvider {
+  LOCAL
+  GOOGLE
+  GITHUB
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum PlanTier {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+// ── Models ─────────────────────────────────────────────────────────────
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  hashedPassword String?
+  fullName       String?
+  avatarUrl      String?
+
+  isActive    Boolean @default(true)
+  isSuperuser Boolean @default(false)
+  isVerified  Boolean @default(false)
+
+  verificationToken String?
+  resetToken        String?
+  resetTokenExpiresAt DateTime?
+
+  oauthProvider   OAuthProvider @default(LOCAL)
+  oauthProviderId String?
+
+  mfaEnabled Boolean @default(false)
+  mfaSecret  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships   Membership[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  invitesSent   Invitation[]   @relation("InvitedBy")
+
+  @@index([oauthProviderId])
+  @@map("users")
+}
+
+model Organization {
+  id      String   @id @default(cuid())
+  name    String
+  slug    String   @unique
+  logoUrl String?
+  plan    PlanTier @default(FREE)
+
+  paystackCustomerId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships  Membership[]
+  invitations  Invitation[]
+  subscription Subscription?
+  auditLogs    AuditLog[]
+
+  @@map("organizations")
+}
+
+model Membership {
+  id             String     @id @default(cuid())
+  userId         String
+  organizationId String
+  role           MemberRole @default(MEMBER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+  @@map("memberships")
+}
+
+model Invitation {
+  id             String           @id @default(cuid())
+  organizationId String
+  email          String
+  role           MemberRole       @default(MEMBER)
+  token          String           @unique
+  invitedById    String?
+  status         InvitationStatus @default(PENDING)
+  expiresAt      DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy    User?        @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([organizationId])
+  @@map("invitations")
+}
+
+model Subscription {
+  id             String             @id @default(cuid())
+  organizationId String             @unique
+  paystackSubCode   String             @unique
+  paystackPlanCode  String
+  status         SubscriptionStatus
+  periodStart    DateTime
+  periodEnd      DateTime
+  cancelAtEnd    Boolean            @default(false)
+  canceledAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Notification {
+  id     String  @id @default(cuid())
+  userId String
+  title  String
+  body   String
+  link   String?
+  isRead Boolean @default(false)
+  readAt DateTime?
+  meta   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id             String  @id @default(cuid())
+  organizationId String?
+  userId         String?
+  action         String
+  resourceType   String?
+  resourceId     String?
+  ipAddress      String?
+  userAgent      String?
+  meta           Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([action])
+  @@map("audit_logs")
+}
