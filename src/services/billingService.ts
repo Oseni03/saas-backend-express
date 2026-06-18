@@ -99,7 +99,7 @@ export const billingService = {
       metadata: {
         organizationId: orgId,
         plan,
-        cancel_action: callbackUrl,
+        cancel_action: callbackUrl + "status=cancelled",
       },
     });
 

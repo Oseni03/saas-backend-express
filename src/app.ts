@@ -27,10 +27,7 @@ export function createApp() {
   );
 
   // ── Raw body for Paystack webhooks (must come before json middleware) ─
-  app.use(
-    "/api/v1/billing/webhooks/paystack",
-    express.raw({ type: "application/json" })
-  );
+  app.use("/api/v1/billing/webhooks/paystack", express.raw({ type: "application/json" }));
 
   // ── Body parsing ────────────────────────────────────────────────────
   app.use(express.json({ limit: "1mb" }));
@@ -44,8 +41,7 @@ export function createApp() {
     pinoHttp({
       logger,
       autoLogging: {
-        ignore: (req) =>
-          ["/api/v1/health", "/api/v1/ready"].includes(req.url ?? ""),
+        ignore: (req) => ["/api/v1/health", "/api/v1/ready"].includes(req.url ?? ""),
       },
       customLogLevel: (_req, res) => {
         if (res.statusCode >= 500) return "error";
