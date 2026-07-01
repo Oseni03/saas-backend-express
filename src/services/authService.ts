@@ -1,7 +1,7 @@
 import { OAuthProvider } from "@prisma/client";
 import dayjs from "dayjs";
 
-import { issueTokenPair } from "../lib/jwt";
+import { issueTokenPair, issueMfaPendingToken } from "../lib/jwt";
 import { hashPassword, verifyPassword, generateToken, hashToken } from "../lib/crypto";
 import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from "../lib/email";
 import { userRepository } from "../repositories/userRepository";
@@ -67,6 +67,12 @@ export const authService = {
     if (!user.isActive) throw new UnauthorizedError("Account is deactivated");
 
     logger.info({ userId: user.id }, "auth.login");
+
+    // If MFA is enabled, return mfa_pending token instead of full TokenPair
+    if (user.mfaEnabled) {
+      return issueMfaPendingToken(user.id);
+    }
+
     return issueTokenPair(user.id);
   },
 

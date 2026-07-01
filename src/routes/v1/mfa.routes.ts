@@ -1,18 +1,16 @@
 import { Router } from "express";
 import { z } from "zod";
 import { mfaController } from "../../controllers/mfaController";
-import { authenticate } from "../../middleware/authenticate";
+import { authenticate, authenticateMfaPending } from "../../middleware/authenticate";
 import { validate } from "../../middleware/validate";
 
 const CodeSchema = z.object({ code: z.string().length(6) });
 
 const router = Router();
 
-router.use(authenticate);
-
-router.post("/setup",    mfaController.setup);
-router.post("/verify",   validate(CodeSchema), mfaController.verify);
-router.post("/disable",  validate(CodeSchema), mfaController.disable);
-router.post("/validate", validate(CodeSchema), mfaController.validate);
+router.post("/setup", authenticate, mfaController.setup);
+router.post("/verify", authenticate, validate(CodeSchema), mfaController.verify);
+router.post("/disable", authenticate, validate(CodeSchema), mfaController.disable);
+router.post("/validate", authenticateMfaPending, validate(CodeSchema), mfaController.validate);
 
 export default router;

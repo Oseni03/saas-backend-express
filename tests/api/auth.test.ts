@@ -167,3 +167,107 @@ describe("GET /api/v1/auth/oauth/github", () => {
     expect(res.body.authorization_url).toContain("scope=");
   });
 });
+
+describe("MFA pending token flow", () => {
+  it("login without MFA returns TokenPair", async () => {
+    const registerRes = await request(app).post("/api/v1/auth/register").send({
+      email: "nomfa@example.com",
+      password: "Secure1234!",
+      full_name: "No MFA User",
+    });
+
+    const loginRes = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: "nomfa@example.com", password: "Secure1234!" });
+
+    expect(loginRes.status).toBe(200);
+    expect(loginRes.body).toHaveProperty("access_token");
+    expect(loginRes.body).toHaveProperty("refresh_token");
+    expect(loginRes.body.token_type).toBe("Bearer");
+    expect(loginRes.body).not.toHaveProperty("mfa_pending");
+  });
+
+  it("login with MFA enabled returns mfa_pending token", async () => {
+    // First register a user
+    const registerRes = await request(app).post("/api/v1/auth/register").send({
+      email: "mfauser@example.com",
+      password: "Secure1234!",
+      full_name: "MFA User",
+    });
+
+    const userId = registerRes.body.user.id;
+    const accessToken = registerRes.body.access_token;
+
+    // Setup MFA
+    const setupRes = await request(app)
+      .post("/api/v1/mfa/setup")
+      .set("Authorization", `Bearer ${accessToken}`);
+
+    const secret = setupRes.body.secret;
+
+    // Verify MFA setup
+    const { authenticator } = await import("otplib");
+    const code = authenticator.generate(secret);
+
+    await request(app)
+      .post("/api/v1/mfa/verify")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ code });
+
+    // Now login should return mfa_pending token
+    const loginRes = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: "mfauser@example.com", password: "Secure1234!" });
+
+    expect(loginRes.status).toBe(200);
+    expect(loginRes.body).toHaveProperty("mfa_pending");
+    expect(loginRes.body.mfa_pending).toBeDefined();
+    expect(loginRes.body.expires_in).toBe(300);
+    expect(loginRes.body).not.toHaveProperty("access_token");
+    expect(loginRes.body).not.toHaveProperty("refresh_token");
+  });
+
+  it("mfa_pending token can be used to validate MFA", async () => {
+    // Register and setup MFA
+    const registerRes = await request(app).post("/api/v1/auth/register").send({
+      email: "mfavalidate@example.com",
+      password: "Secure1234!",
+      full_name: "MFA Validate User",
+    });
+
+    const accessToken = registerRes.body.access_token;
+
+    const setupRes = await request(app)
+      .post("/api/v1/mfa/setup")
+      .set("Authorization", `Bearer ${accessToken}`);
+
+    const secret = setupRes.body.secret;
+
+    const { authenticator } = await import("otplib");
+    const code = authenticator.generate(secret);
+
+    await request(app)
+      .post("/api/v1/mfa/verify")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ code });
+
+    // Login to get mfa_pending token
+    const loginRes = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: "mfavalidate@example.com", password: "Secure1234!" });
+
+    const mfaPendingToken = loginRes.body.mfa_pending;
+
+    // Use mfa_pending token to validate MFA
+    const mfaCode = authenticator.generate(secret);
+    const validateRes = await request(app)
+      .post("/api/v1/mfa/validate")
+      .set("Authorization", `Bearer ${mfaPendingToken}`)
+      .send({ code: mfaCode });
+
+    expect(validateRes.status).toBe(200);
+    expect(validateRes.body).toHaveProperty("access_token");
+    expect(validateRes.body).toHaveProperty("refresh_token");
+    expect(validateRes.body.token_type).toBe("Bearer");
+  });
+});

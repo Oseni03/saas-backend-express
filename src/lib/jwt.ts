@@ -3,7 +3,7 @@ import { config } from "../config";
 
 export interface TokenPayload {
   sub: string;
-  type: "access" | "refresh";
+  type: "access" | "refresh" | "mfa_pending";
 }
 
 export function signAccessToken(userId: string): string {
@@ -15,6 +15,12 @@ export function signAccessToken(userId: string): string {
 export function signRefreshToken(userId: string): string {
   return jwt.sign({ sub: userId, type: "refresh" }, config.JWT_REFRESH_SECRET, {
     expiresIn: `${config.REFRESH_TOKEN_EXPIRE_DAYS}d`,
+  });
+}
+
+export function signMfaPendingToken(userId: string): string {
+  return jwt.sign({ sub: userId, type: "mfa_pending" }, config.JWT_ACCESS_SECRET, {
+    expiresIn: "5m",
   });
 }
 
@@ -30,10 +36,23 @@ export function verifyRefreshToken(token: string): TokenPayload {
   return payload;
 }
 
+export function verifyMfaPendingToken(token: string): TokenPayload {
+  const payload = jwt.verify(token, config.JWT_ACCESS_SECRET) as TokenPayload;
+  if (payload.type !== "mfa_pending") throw new Error("Not an mfa_pending token");
+  return payload;
+}
+
 export function issueTokenPair(userId: string) {
   return {
     access_token: signAccessToken(userId),
     refresh_token: signRefreshToken(userId),
     token_type: "Bearer" as const,
+  };
+}
+
+export function issueMfaPendingToken(userId: string) {
+  return {
+    mfa_pending: signMfaPendingToken(userId),
+    expires_in: 300,
   };
 }

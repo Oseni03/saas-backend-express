@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { verifyAccessToken } from "../lib/jwt";
+import { verifyAccessToken, verifyMfaPendingToken } from "../lib/jwt";
 import { prisma } from "../lib/prisma";
 import { UnauthorizedError, ForbiddenError } from "./errors";
 
@@ -18,6 +18,29 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user) throw new UnauthorizedError("User not found");
     if (!user.isActive) throw new UnauthorizedError("Account is inactive");
+
+    req.user = user;
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Validates an mfa_pending token and attaches req.user (minimal context).
+ * Only allows access to complete MFA validation flow.
+ * Throws 401 if missing/invalid or not an mfa_pending token.
+ */
+export async function authenticateMfaPending(req: Request, _res: Response, next: NextFunction) {
+  try {
+    const header = req.headers.authorization;
+    if (!header?.startsWith("Bearer ")) throw new UnauthorizedError();
+
+    const token = header.slice(7);
+    const payload = verifyMfaPendingToken(token);
+
+    const user = await prisma.user.findUnique({ where: { id: payload.sub } });
+    if (!user) throw new UnauthorizedError("User not found");
 
     req.user = user;
     next();
