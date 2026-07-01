@@ -140,3 +140,32 @@ describe("POST /api/v1/auth/forgot-password", () => {
     expect(res.status).toBe(202);
   });
 });
+
+describe("GET /api/v1/auth/oauth/google", () => {
+  it("returns authorization_url for Google OAuth", async () => {
+    const res = await request(app).get("/api/v1/auth/oauth/google");
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty("authorization_url");
+    expect(res.body.authorization_url).toMatch(
+      /^https:\/\/accounts\.google\.com\/o\/oauth2\/v2\/auth\?/
+    );
+    expect(res.body.authorization_url).toContain("client_id=");
+    expect(res.body.authorization_url).toContain("redirect_uri=");
+    expect(res.body.authorization_url).toContain("response_type=code");
+    expect(res.body.authorization_url).toContain("scope=openid");
+  });
+});
+
+describe("GET /api/v1/auth/oauth/github", () => {
+  it("returns authorization_url for GitHub OAuth", async () => {
+    const res = await request(app).get("/api/v1/auth/oauth/github");
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty("authorization_url");
+    expect(res.body.authorization_url).toMatch(
+      /^https:\/\/github\.com\/login\/oauth\/authorize\?/
+    );
+    expect(res.body.authorization_url).toContain("client_id=");
+    expect(res.body.authorization_url).toContain("redirect_uri=");
+    expect(res.body.authorization_url).toContain("scope=");
+  });
+});

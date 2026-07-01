@@ -19,7 +19,9 @@ router.get("/google", (_req, res) => {
     scope: "openid email profile",
     access_type: "offline",
   });
-  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
+  res.json({
+    authorization_url: `https://accounts.google.com/o/oauth2/v2/auth?${params}`,
+  });
 });
 
 router.get("/google/callback", async (req: Request, res: Response, next: NextFunction) => {
@@ -63,7 +65,9 @@ router.get("/github", (_req, res) => {
     redirect_uri: `${config.APP_BASE_URL}/api/v1/oauth/github/callback`,
     scope: "read:user user:email",
   });
-  res.redirect(`https://github.com/login/oauth/authorize?${params}`);
+  res.json({
+    authorization_url: `https://github.com/login/oauth/authorize?${params}`,
+  });
 });
 
 router.get("/github/callback", async (req: Request, res: Response, next: NextFunction) => {
