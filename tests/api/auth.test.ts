@@ -161,9 +161,7 @@ describe("GET /api/v1/auth/oauth/github", () => {
     const res = await request(app).get("/api/v1/auth/oauth/github");
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty("authorization_url");
-    expect(res.body.authorization_url).toMatch(
-      /^https:\/\/github\.com\/login\/oauth\/authorize\?/
-    );
+    expect(res.body.authorization_url).toMatch(/^https:\/\/github\.com\/login\/oauth\/authorize\?/);
     expect(res.body.authorization_url).toContain("client_id=");
     expect(res.body.authorization_url).toContain("redirect_uri=");
     expect(res.body.authorization_url).toContain("scope=");
