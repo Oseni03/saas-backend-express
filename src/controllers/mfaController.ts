@@ -16,7 +16,7 @@ export const mfaController = {
 
   async verify(req: Request, res: Response, next: NextFunction) {
     try {
-      await mfaService.verify(req.user!.id, req.body.code);
+      await mfaService.verify(req.user!.id, req.query.code as string);
       res.status(204).send();
     } catch (err) {
       next(err);
@@ -25,7 +25,7 @@ export const mfaController = {
 
   async disable(req: Request, res: Response, next: NextFunction) {
     try {
-      await mfaService.disable(req.user!.id, req.body.code);
+      await mfaService.disable(req.user!.id, req.query.code as string);
       res.status(204).send();
     } catch (err) {
       next(err);
@@ -34,7 +34,7 @@ export const mfaController = {
 
   async validate(req: Request, res: Response, next: NextFunction) {
     try {
-      const tokens = await mfaService.validate(req.user!.id, req.body.code);
+      const tokens = await mfaService.validate(req.user!.id, req.query.code as string);
       res.json(tokens);
     } catch (err) {
       next(err);

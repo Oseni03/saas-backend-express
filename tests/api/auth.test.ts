@@ -212,7 +212,7 @@ describe("MFA pending token flow", () => {
     await request(app)
       .post("/api/v1/mfa/verify")
       .set("Authorization", `Bearer ${accessToken}`)
-      .send({ code });
+      .query({ code });
 
     // Now login should return mfa_pending token
     const loginRes = await request(app)
@@ -249,7 +249,7 @@ describe("MFA pending token flow", () => {
     await request(app)
       .post("/api/v1/mfa/verify")
       .set("Authorization", `Bearer ${accessToken}`)
-      .send({ code });
+      .query({ code });
 
     // Login to get mfa_pending token
     const loginRes = await request(app)
@@ -263,11 +263,42 @@ describe("MFA pending token flow", () => {
     const validateRes = await request(app)
       .post("/api/v1/mfa/validate")
       .set("Authorization", `Bearer ${mfaPendingToken}`)
-      .send({ code: mfaCode });
+      .query({ code: mfaCode });
 
     expect(validateRes.status).toBe(200);
     expect(validateRes.body).toHaveProperty("access_token");
     expect(validateRes.body).toHaveProperty("refresh_token");
     expect(validateRes.body.token_type).toBe("Bearer");
+  });
+
+  it("returns 422 when code query parameter is missing", async () => {
+    const registerRes = await request(app).post("/api/v1/auth/register").send({
+      email: "missingcode@example.com",
+      password: "Secure1234!",
+    });
+
+    const accessToken = registerRes.body.access_token;
+
+    const res = await request(app)
+      .post("/api/v1/mfa/verify")
+      .set("Authorization", `Bearer ${accessToken}`);
+
+    expect(res.status).toBe(422);
+  });
+
+  it("returns 422 when code query parameter is invalid length", async () => {
+    const registerRes = await request(app).post("/api/v1/auth/register").send({
+      email: "invalidcode@example.com",
+      password: "Secure1234!",
+    });
+
+    const accessToken = registerRes.body.access_token;
+
+    const res = await request(app)
+      .post("/api/v1/mfa/verify")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .query({ code: "12345" }); // 5 digits instead of 6
+
+    expect(res.status).toBe(422);
   });
 });
