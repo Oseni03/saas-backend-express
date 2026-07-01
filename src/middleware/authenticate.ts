@@ -64,3 +64,34 @@ export function requireSuperuser(req: Request, _res: Response, next: NextFunctio
   }
   next();
 }
+
+/**
+ * Requires admin access: either system-level superuser flag or admin role in any organization.
+ * Call after authenticate. Throws 403 if user is not an admin.
+ */
+export async function requireAdmin(req: Request, _res: Response, next: NextFunction) {
+  try {
+    const user = req.user!;
+
+    // System-level admin
+    if (user.isSuperuser) {
+      return next();
+    }
+
+    // Check for admin role in any organization
+    const adminRole = await prisma.organizationMember.findFirst({
+      where: {
+        userId: user.id,
+        role: "ADMIN",
+      },
+    });
+
+    if (adminRole) {
+      return next();
+    }
+
+    next(new ForbiddenError("Admin access required"));
+  } catch (err) {
+    next(err);
+  }
+}
