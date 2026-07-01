@@ -5,6 +5,30 @@ import { orgRepository } from "../repositories/orgRepository";
 import { parsePagination } from "../lib/pagination";
 import { NotFoundError } from "../middleware/errors";
 
+function sanitizeUser(user: any) {
+  return {
+    id: user.id,
+    email: user.email,
+    full_name: user.fullName,
+    avatar_url: user.avatarUrl,
+    is_verified: user.isVerified,
+    is_active: user.isActive,
+    mfa_enabled: user.mfaEnabled,
+    created_at: user.createdAt,
+  };
+}
+
+function sanitizeOrg(org: any) {
+  return {
+    id: org.id,
+    name: org.name,
+    slug: org.slug,
+    logo_url: org.logoUrl,
+    plan: org.plan,
+    created_at: org.createdAt,
+  };
+}
+
 export const adminController = {
   async stats(_req: Request, res: Response, next: NextFunction) {
     try {
@@ -13,7 +37,10 @@ export const adminController = {
         prisma.user.count({ where: { isVerified: true } }),
         prisma.organization.count(),
       ]);
-      res.json({ users: { total: totalUsers, verified: verifiedUsers }, organizations: { total: totalOrgs } });
+      res.json({
+        users: { total: totalUsers, verified: verifiedUsers },
+        organizations: { total: totalOrgs },
+      });
     } catch (err) {
       next(err);
     }
@@ -26,7 +53,7 @@ export const adminController = {
         userRepository.listAll(limit, offset),
         userRepository.countAll(),
       ]);
-      res.json({ items: users, total, limit, offset });
+      res.json(users.map(sanitizeUser));
     } catch (err) {
       next(err);
     }
@@ -39,7 +66,7 @@ export const adminController = {
         orgRepository.listAll(limit, offset),
         orgRepository.countAll(),
       ]);
-      res.json({ items: orgs, total, limit, offset });
+      res.json(orgs.map(sanitizeOrg));
     } catch (err) {
       next(err);
     }
@@ -50,7 +77,7 @@ export const adminController = {
       const user = await userRepository.findById(req.params.userId);
       if (!user) throw new NotFoundError("User");
       const updated = await userRepository.update(req.params.userId, { isActive: false });
-      res.json(updated);
+      res.json(sanitizeUser(updated));
     } catch (err) {
       next(err);
     }
@@ -61,7 +88,7 @@ export const adminController = {
       const user = await userRepository.findById(req.params.userId);
       if (!user) throw new NotFoundError("User");
       const updated = await userRepository.update(req.params.userId, { isActive: true });
-      res.json(updated);
+      res.json(sanitizeUser(updated));
     } catch (err) {
       next(err);
     }

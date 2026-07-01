@@ -14,11 +14,13 @@ const app = createApp();
 
 async function loginAs(email: string): Promise<{ token: string; userId: string }> {
   await request(app).post("/api/v1/auth/register").send({ email, password: "Secure1234!" });
-  const res = await request(app).post("/api/v1/auth/login").send({ email, password: "Secure1234!" });
+  const res = await request(app)
+    .post("/api/v1/auth/login")
+    .send({ email, password: "Secure1234!" });
   const meRes = await request(app)
     .get("/api/v1/auth/me")
-    .set("Authorization", `Bearer ${res.body.accessToken}`);
-  return { token: res.body.accessToken, userId: meRes.body.id };
+    .set("Authorization", `Bearer ${res.body.access_token}`);
+  return { token: res.body.access_token, userId: meRes.body.id };
 }
 
 describe("GET /api/v1/notifications", () => {

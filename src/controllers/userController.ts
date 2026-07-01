@@ -5,26 +5,25 @@ import { userRepository } from "../repositories/userRepository";
 import { UnauthorizedError } from "../middleware/errors";
 
 const UpdateProfileSchema = z.object({
-  fullName: z.string().max(255).optional(),
-  avatarUrl: z.string().url().optional(),
+  full_name: z.string().max(255).optional(),
+  avatar_url: z.string().url().optional(),
 });
 
 const ChangePasswordSchema = z.object({
-  currentPassword: z.string(),
-  newPassword: z.string().min(8).max(128),
+  current_password: z.string(),
+  new_password: z.string().min(8).max(128),
 });
 
 function sanitize(user: NonNullable<Awaited<ReturnType<typeof userRepository.findById>>>) {
   return {
     id: user.id,
     email: user.email,
-    fullName: user.fullName,
-    avatarUrl: user.avatarUrl,
-    isVerified: user.isVerified,
-    isActive: user.isActive,
-    mfaEnabled: user.mfaEnabled,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
+    full_name: user.fullName,
+    avatar_url: user.avatarUrl,
+    is_verified: user.isVerified,
+    is_active: user.isActive,
+    mfa_enabled: user.mfaEnabled,
+    created_at: user.createdAt,
   };
 }
 
@@ -36,7 +35,10 @@ export const userController = {
   async updateProfile(req: Request, res: Response, next: NextFunction) {
     try {
       const input = UpdateProfileSchema.parse(req.body);
-      const updated = await userRepository.update(req.user!.id, input);
+      const updated = await userRepository.update(req.user!.id, {
+        fullName: input.full_name,
+        avatarUrl: input.avatar_url,
+      });
       res.json(sanitize(updated));
     } catch (err) {
       next(err);
@@ -51,11 +53,11 @@ export const userController = {
       if (!user.hashedPassword) {
         throw new UnauthorizedError("OAuth accounts cannot change passwords directly");
       }
-      const valid = await verifyPassword(input.currentPassword, user.hashedPassword);
+      const valid = await verifyPassword(input.current_password, user.hashedPassword);
       if (!valid) throw new UnauthorizedError("Current password is incorrect");
 
       await userRepository.update(user.id, {
-        hashedPassword: await hashPassword(input.newPassword),
+        hashedPassword: await hashPassword(input.new_password),
       });
       res.status(204).send();
     } catch (err) {

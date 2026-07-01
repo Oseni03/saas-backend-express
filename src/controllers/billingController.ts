@@ -5,7 +5,7 @@ import { z } from "zod";
 
 const InitializeSchema = z.object({
   plan: z.nativeEnum(PlanTier),
-  callbackUrl: z.string().url(),
+  callback_url: z.string().url(),
 });
 
 const CancelSchema = z.object({});
@@ -13,7 +13,7 @@ const CancelSchema = z.object({});
 export const billingController = {
   /**
    * Step 1 — Initialize a Paystack transaction.
-   * Returns { authorizationUrl } — redirect the user there to pay.
+   * Returns { authorization_url } — redirect the user there to pay.
    */
   async initialize(req: Request, res: Response, next: NextFunction) {
     try {
@@ -22,9 +22,9 @@ export const billingController = {
         req.org!.id,
         input.plan,
         req.user!.email,
-        input.callbackUrl
+        input.callback_url
       );
-      res.json({ authorizationUrl: url });
+      res.json({ authorization_url: url });
     } catch (err) {
       next(err);
     }
@@ -42,7 +42,7 @@ export const billingController = {
         return res.status(400).json({ error: "Missing reference query param" });
       }
       const result = await billingService.verifyTransaction(reference);
-      res.json({ plan: result.plan, organizationId: result.orgId });
+      res.json({ plan: result.plan, organization_id: result.orgId });
     } catch (err) {
       next(err);
     }
@@ -55,7 +55,7 @@ export const billingController = {
   async manageUrl(req: Request, res: Response, next: NextFunction) {
     try {
       const url = await billingService.getManageUrl(req.org!.id);
-      res.json({ manageUrl: url });
+      res.json({ manage_url: url });
     } catch (err) {
       next(err);
     }
@@ -82,7 +82,7 @@ export const billingController = {
     try {
       const sig = req.headers["x-paystack-signature"] as string;
       await billingService.handleWebhook(req.body as Buffer, sig);
-      res.json({ received: true });
+      res.json({});
     } catch (err) {
       next(err);
     }

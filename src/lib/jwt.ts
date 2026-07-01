@@ -32,8 +32,8 @@ export function verifyRefreshToken(token: string): TokenPayload {
 
 export function issueTokenPair(userId: string) {
   return {
-    accessToken: signAccessToken(userId),
-    refreshToken: signRefreshToken(userId),
-    tokenType: "Bearer" as const,
+    access_token: signAccessToken(userId),
+    refresh_token: signRefreshToken(userId),
+    token_type: "Bearer" as const,
   };
 }

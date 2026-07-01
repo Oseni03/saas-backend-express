@@ -2,6 +2,19 @@ import type { Request, Response, NextFunction } from "express";
 import { notificationService } from "../services/notificationService";
 import { parsePagination } from "../lib/pagination";
 
+function sanitizeNotification(notif: any) {
+  return {
+    id: notif.id,
+    title: notif.title,
+    body: notif.body,
+    link: notif.link,
+    is_read: notif.isRead,
+    read_at: notif.readAt,
+    meta: notif.meta,
+    created_at: notif.createdAt,
+  };
+}
+
 export const notificationController = {
   async list(req: Request, res: Response, next: NextFunction) {
     try {
@@ -13,7 +26,7 @@ export const notificationController = {
         notificationService.countUnread(userId),
       ]);
 
-      res.json({ items, unreadCount, limit, offset });
+      res.json({ items: items.map(sanitizeNotification), unread_count: unreadCount });
     } catch (err) {
       next(err);
     }

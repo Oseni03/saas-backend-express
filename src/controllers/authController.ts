@@ -5,12 +5,21 @@ export const authController = {
   async register(req: Request, res: Response, next: NextFunction) {
     try {
       const user = await authService.register(req.body);
+      const tokens = await import("../lib/jwt").then((m) => m.issueTokenPair(user.id));
       res.status(201).json({
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        isVerified: user.isVerified,
-        createdAt: user.createdAt,
+        user: {
+          id: user.id,
+          email: user.email,
+          full_name: user.fullName,
+          avatar_url: user.avatarUrl,
+          is_verified: user.isVerified,
+          is_active: user.isActive,
+          mfa_enabled: user.mfaEnabled,
+          created_at: user.createdAt,
+        },
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        token_type: tokens.token_type,
       });
     } catch (err) {
       next(err);
@@ -28,7 +37,7 @@ export const authController = {
 
   async refresh(req: Request, res: Response, next: NextFunction) {
     try {
-      const tokens = await authService.refresh(req.body.refreshToken);
+      const tokens = await authService.refresh(req.body.refresh_token);
       res.json(tokens);
     } catch (err) {
       next(err);
@@ -38,7 +47,16 @@ export const authController = {
   async verifyEmail(req: Request, res: Response, next: NextFunction) {
     try {
       const user = await authService.verifyEmail(req.body.token);
-      res.json({ id: user.id, email: user.email, isVerified: user.isVerified });
+      res.json({
+        id: user.id,
+        email: user.email,
+        full_name: user.fullName,
+        avatar_url: user.avatarUrl,
+        is_verified: user.isVerified,
+        is_active: user.isActive,
+        mfa_enabled: user.mfaEnabled,
+        created_at: user.createdAt,
+      });
     } catch (err) {
       next(err);
     }
@@ -57,8 +75,17 @@ export const authController = {
 
   async resetPassword(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await authService.resetPassword(req.body.token, req.body.newPassword);
-      res.json({ id: user.id, email: user.email });
+      const user = await authService.resetPassword(req.body.token, req.body.new_password);
+      res.json({
+        id: user.id,
+        email: user.email,
+        full_name: user.fullName,
+        avatar_url: user.avatarUrl,
+        is_verified: user.isVerified,
+        is_active: user.isActive,
+        mfa_enabled: user.mfaEnabled,
+        created_at: user.createdAt,
+      });
     } catch (err) {
       next(err);
     }
@@ -69,12 +96,12 @@ export const authController = {
     res.json({
       id: u.id,
       email: u.email,
-      fullName: u.fullName,
-      avatarUrl: u.avatarUrl,
-      isVerified: u.isVerified,
-      isActive: u.isActive,
-      mfaEnabled: u.mfaEnabled,
-      createdAt: u.createdAt,
+      full_name: u.fullName,
+      avatar_url: u.avatarUrl,
+      is_verified: u.isVerified,
+      is_active: u.isActive,
+      mfa_enabled: u.mfaEnabled,
+      created_at: u.createdAt,
     });
   },
 };

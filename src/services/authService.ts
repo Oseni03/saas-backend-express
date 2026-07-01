@@ -3,18 +3,10 @@ import dayjs from "dayjs";
 
 import { issueTokenPair } from "../lib/jwt";
 import { hashPassword, verifyPassword, generateToken, hashToken } from "../lib/crypto";
-import {
-  sendVerificationEmail,
-  sendPasswordResetEmail,
-  sendWelcomeEmail,
-} from "../lib/email";
+import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from "../lib/email";
 import { userRepository } from "../repositories/userRepository";
 import { logger } from "../lib/logger";
-import {
-  ConflictError,
-  UnauthorizedError,
-  BadRequestError,
-} from "../middleware/errors";
+import { ConflictError, UnauthorizedError, BadRequestError } from "../middleware/errors";
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
 import { z } from "zod";
@@ -27,7 +19,7 @@ export const RegisterSchema = z.object({
     .max(128)
     .refine((v) => /[A-Z]/.test(v), "Must contain an uppercase letter")
     .refine((v) => /[0-9]/.test(v), "Must contain a digit"),
-  fullName: z.string().max(255).optional(),
+  full_name: z.string().max(255).optional(),
 });
 
 export const LoginSchema = z.object({
@@ -35,7 +27,7 @@ export const LoginSchema = z.object({
   password: z.string(),
 });
 
-export const RefreshSchema = z.object({ refreshToken: z.string() });
+export const RefreshSchema = z.object({ refresh_token: z.string() });
 
 export const VerifyEmailSchema = z.object({ token: z.string() });
 
@@ -43,7 +35,7 @@ export const ForgotPasswordSchema = z.object({ email: z.string().email() });
 
 export const ResetPasswordSchema = z.object({
   token: z.string(),
-  newPassword: z.string().min(8).max(128),
+  new_password: z.string().min(8).max(128),
 });
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -57,13 +49,11 @@ export const authService = {
     const user = await userRepository.create({
       email: input.email.toLowerCase().trim(),
       hashedPassword: await hashPassword(input.password),
-      fullName: input.fullName,
+      fullName: input.full_name,
       verificationToken: hashToken(verificationToken),
     });
 
-    await sendVerificationEmail(user.email, user.fullName ?? "", verificationToken).catch(
-      () => {}
-    );
+    await sendVerificationEmail(user.email, user.fullName ?? "", verificationToken).catch(() => {});
     logger.info({ userId: user.id }, "auth.registered");
     return user;
   },

@@ -1,7 +1,7 @@
 export type TokenPair = {
-  accessToken: string;
-  refreshToken: string;
-  tokenType: "Bearer";
+  access_token: string;
+  refresh_token: string;
+  token_type: "Bearer";
 };
 
 export type PlanLimits = {

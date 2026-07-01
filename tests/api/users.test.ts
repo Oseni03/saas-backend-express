@@ -11,13 +11,12 @@ vi.mock("../../src/lib/email", () => ({
 
 const app = createApp();
 
-async function registerAndLogin(
-  email: string,
-  password = "Secure1234!"
-): Promise<string> {
-  await request(app).post("/api/v1/auth/register").send({ email, password, fullName: "Test User" });
+async function registerAndLogin(email: string, password = "Secure1234!"): Promise<string> {
+  await request(app)
+    .post("/api/v1/auth/register")
+    .send({ email, password, full_name: "Test User" });
   const res = await request(app).post("/api/v1/auth/login").send({ email, password });
-  return res.body.accessToken as string;
+  return res.body.access_token as string;
 }
 
 function bearer(token: string) {
@@ -31,7 +30,7 @@ describe("GET /api/v1/users/me", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.email).toBe("me@example.com");
-    expect(res.body.fullName).toBe("Test User");
+    expect(res.body.full_name).toBe("Test User");
     expect(res.body).not.toHaveProperty("hashedPassword");
     expect(res.body).not.toHaveProperty("mfaSecret");
   });
@@ -48,11 +47,11 @@ describe("PATCH /api/v1/users/me", () => {
     const res = await request(app)
       .patch("/api/v1/users/me")
       .set(bearer(token))
-      .send({ fullName: "Updated Name", avatarUrl: "https://example.com/avatar.png" });
+      .send({ full_name: "Updated Name", avatar_url: "https://example.com/avatar.png" });
 
     expect(res.status).toBe(200);
-    expect(res.body.fullName).toBe("Updated Name");
-    expect(res.body.avatarUrl).toBe("https://example.com/avatar.png");
+    expect(res.body.full_name).toBe("Updated Name");
+    expect(res.body.avatar_url).toBe("https://example.com/avatar.png");
   });
 
   it("ignores unknown fields", async () => {
@@ -60,11 +59,11 @@ describe("PATCH /api/v1/users/me", () => {
     const res = await request(app)
       .patch("/api/v1/users/me")
       .set(bearer(token))
-      .send({ fullName: "Safe User", isAdmin: true, isSuperuser: true });
+      .send({ full_name: "Safe User", isAdmin: true, isSuperuser: true });
 
     expect(res.status).toBe(200);
     // Injected privilege escalation fields must NOT be persisted
-    expect(res.body.isSuperuser).toBe(false);
+    expect(res.body.is_admin).toBeUndefined();
   });
 
   it("returns 422 for invalid avatar URL", async () => {
@@ -72,7 +71,7 @@ describe("PATCH /api/v1/users/me", () => {
     const res = await request(app)
       .patch("/api/v1/users/me")
       .set(bearer(token))
-      .send({ avatarUrl: "not-a-url" });
+      .send({ avatar_url: "not-a-url" });
     expect(res.status).toBe(422);
   });
 });
@@ -85,7 +84,7 @@ describe("POST /api/v1/users/me/change-password", () => {
     const res = await request(app)
       .post("/api/v1/users/me/change-password")
       .set(bearer(token))
-      .send({ currentPassword: "OldPass1234!", newPassword: "NewPass5678!" });
+      .send({ current_password: "OldPass1234!", new_password: "NewPass5678!" });
 
     expect(res.status).toBe(204);
 

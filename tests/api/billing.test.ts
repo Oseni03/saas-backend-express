@@ -36,8 +36,8 @@ async function registerVerifyLogin(email: string): Promise<{ token: string; user
     .send({ email, password: "Secure1234!" });
   const meRes = await request(app)
     .get("/api/v1/auth/me")
-    .set("Authorization", `Bearer ${res.body.accessToken}`);
-  return { token: res.body.accessToken, userId: meRes.body.id };
+    .set("Authorization", `Bearer ${res.body.access_token}`);
+  return { token: res.body.access_token, userId: meRes.body.id };
 }
 
 function bearer(token: string) {
@@ -91,7 +91,7 @@ describe("POST /api/v1/billing/organizations/:orgId/initialize", () => {
 
     // Add the member
     await prisma.membership.create({
-      data: { userId: memberId, organizationId: orgRes.body.id, role: "MEMBER" },
+      data: { userId: memberId, organizationId: orgRes.body.organization_id, role: "MEMBER" },
     });
 
     const res = await request(app)
@@ -106,9 +106,7 @@ describe("POST /api/v1/billing/organizations/:orgId/initialize", () => {
 describe("GET /api/v1/billing/verify", () => {
   it("returns 400 when reference is missing", async () => {
     const { token } = await registerVerifyLogin("billing3@example.com");
-    const res = await request(app)
-      .get("/api/v1/billing/verify")
-      .set(bearer(token));
+    const res = await request(app).get("/api/v1/billing/verify").set(bearer(token));
     expect(res.status).toBe(400);
   });
 });
@@ -166,7 +164,7 @@ describe("GET /api/v1/billing/organizations/:orgId/manage", () => {
       .set(bearer(token));
 
     expect(res.status).toBe(200);
-    expect(res.body.manageUrl).toContain("CUS_testcustomer123");
+    expect(res.body.manage_url).toContain("CUS_testcustomer123");
   });
 });
 
@@ -186,10 +184,7 @@ describe("POST /api/v1/billing/webhooks/paystack", () => {
     const crypto = await import("crypto");
     const payload = JSON.stringify({ event: "charge.success", data: { metadata: {} } });
     const secret = process.env.PAYSTACK_WEBHOOK_SECRET ?? "";
-    const sig = crypto
-      .createHmac("sha512", secret)
-      .update(Buffer.from(payload))
-      .digest("hex");
+    const sig = crypto.createHmac("sha512", secret).update(Buffer.from(payload)).digest("hex");
 
     const res = await request(app)
       .post("/api/v1/billing/webhooks/paystack")

@@ -18,8 +18,10 @@ async function registerAndLogin(email: string): Promise<string> {
   const { prisma } = await import("../../src/lib/prisma");
   await prisma.user.update({ where: { email }, data: { isVerified: true } });
 
-  const res = await request(app).post("/api/v1/auth/login").send({ email, password: "Secure1234!" });
-  return res.body.accessToken as string;
+  const res = await request(app)
+    .post("/api/v1/auth/login")
+    .send({ email, password: "Secure1234!" });
+  return res.body.access_token as string;
 }
 
 function bearer(token: string) {
@@ -51,7 +53,7 @@ describe("POST /api/v1/organizations", () => {
 
     const res = await request(app)
       .post("/api/v1/organizations")
-      .set({ Authorization: `Bearer ${loginRes.body.accessToken}` })
+      .set({ Authorization: `Bearer ${loginRes.body.access_token}` })
       .send({ name: "Should Fail" });
 
     expect(res.status).toBe(403);
@@ -68,10 +70,7 @@ describe("GET /api/v1/organizations", () => {
 
   it("returns orgs the user belongs to", async () => {
     const token = await registerAndLogin("orglister@example.com");
-    await request(app)
-      .post("/api/v1/organizations")
-      .set(bearer(token))
-      .send({ name: "My Org" });
+    await request(app).post("/api/v1/organizations").set(bearer(token)).send({ name: "My Org" });
 
     const res = await request(app).get("/api/v1/organizations").set(bearer(token));
     expect(res.status).toBe(200);

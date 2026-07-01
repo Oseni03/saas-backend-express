@@ -8,7 +8,6 @@ export const mfaController = {
       res.json({
         secret: result.secret,
         otpauthUrl: result.otpauthUrl,
-        message: "Scan the QR code or enter the secret in your authenticator app, then call /mfa/verify.",
       });
     } catch (err) {
       next(err);

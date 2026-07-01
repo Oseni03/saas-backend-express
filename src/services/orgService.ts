@@ -24,7 +24,7 @@ export const CreateOrgSchema = z.object({ name: z.string().min(1).max(255) });
 
 export const UpdateOrgSchema = z.object({
   name: z.string().min(1).max(255).optional(),
-  logoUrl: z.string().url().optional(),
+  logo_url: z.string().url().optional(),
 });
 
 export const InviteMemberSchema = z.object({
@@ -60,7 +60,7 @@ export const orgService = {
   async update(orgId: string, input: z.infer<typeof UpdateOrgSchema>) {
     return orgRepository.update(orgId, {
       ...(input.name && { name: input.name }),
-      ...(input.logoUrl && { logoUrl: input.logoUrl }),
+      ...(input.logo_url && { logoUrl: input.logo_url }),
     });
   },
 
@@ -71,11 +71,7 @@ export const orgService = {
 
   listForUser: (userId: string) => orgRepository.listForUser(userId),
 
-  async inviteMember(
-    orgId: string,
-    input: z.infer<typeof InviteMemberSchema>,
-    actorId: string
-  ) {
+  async inviteMember(orgId: string, input: z.infer<typeof InviteMemberSchema>, actorId: string) {
     const email = input.email.toLowerCase().trim();
 
     // Check for duplicate pending invite

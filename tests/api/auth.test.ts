@@ -17,13 +17,15 @@ describe("POST /api/v1/auth/register", () => {
     const res = await request(app).post("/api/v1/auth/register").send({
       email: "test@example.com",
       password: "Secure1234!",
-      fullName: "Test User",
+      full_name: "Test User",
     });
 
     expect(res.status).toBe(201);
-    expect(res.body.email).toBe("test@example.com");
-    expect(res.body.isVerified).toBe(false);
-    expect(res.body).not.toHaveProperty("hashedPassword");
+    expect(res.body.user.email).toBe("test@example.com");
+    expect(res.body.user.is_verified).toBe(false);
+    expect(res.body).toHaveProperty("access_token");
+    expect(res.body).toHaveProperty("refresh_token");
+    expect(res.body.token_type).toBe("Bearer");
   });
 
   it("returns 409 for duplicate email", async () => {
@@ -58,9 +60,9 @@ describe("POST /api/v1/auth/login", () => {
     const res = await request(app).post("/api/v1/auth/login").send(creds);
 
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty("accessToken");
-    expect(res.body).toHaveProperty("refreshToken");
-    expect(res.body.tokenType).toBe("Bearer");
+    expect(res.body).toHaveProperty("access_token");
+    expect(res.body).toHaveProperty("refresh_token");
+    expect(res.body.token_type).toBe("Bearer");
   });
 
   it("returns 401 for wrong password", async () => {
@@ -92,7 +94,7 @@ describe("GET /api/v1/auth/me", () => {
 
     const res = await request(app)
       .get("/api/v1/auth/me")
-      .set("Authorization", `Bearer ${loginRes.body.accessToken}`);
+      .set("Authorization", `Bearer ${loginRes.body.access_token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.email).toBe("me@example.com");
@@ -123,10 +125,10 @@ describe("POST /api/v1/auth/refresh", () => {
 
     const res = await request(app)
       .post("/api/v1/auth/refresh")
-      .send({ refreshToken: loginRes.body.refreshToken });
+      .send({ refresh_token: loginRes.body.refresh_token });
 
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty("accessToken");
+    expect(res.body).toHaveProperty("access_token");
   });
 });
 

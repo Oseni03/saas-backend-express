@@ -91,8 +91,9 @@ router.get("/github/callback", async (req: Request, res: Response, next: NextFun
     ]);
 
     const profile = userRes.data;
-    const primaryEmail = (emailsRes.data as Array<{ email: string; primary: boolean; verified: boolean }>)
-      .find((e) => e.primary && e.verified)?.email;
+    const primaryEmail = (
+      emailsRes.data as Array<{ email: string; primary: boolean; verified: boolean }>
+    ).find((e) => e.primary && e.verified)?.email;
     const email = profile.email ?? primaryEmail;
 
     if (!email) throw new BadRequestError("Could not retrieve a verified email from GitHub");
