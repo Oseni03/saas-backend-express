@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { verifyAccessToken, verifyMfaPendingToken } from "../lib/jwt";
+import { MemberRole } from "@/generated/prisma";
 import { prisma } from "../lib/prisma";
 import { UnauthorizedError, ForbiddenError } from "./errors";
 
@@ -79,10 +80,10 @@ export async function requireAdmin(req: Request, _res: Response, next: NextFunct
     }
 
     // Check for admin role in any organization
-    const adminRole = await prisma.organizationMember.findFirst({
+    const adminRole = await prisma.membership.findFirst({
       where: {
         userId: user.id,
-        role: "ADMIN",
+        role: MemberRole.ADMIN,
       },
     });
 

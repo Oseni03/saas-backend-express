@@ -206,8 +206,8 @@ describe("MFA pending token flow", () => {
     const secret = setupRes.body.secret;
 
     // Verify MFA setup
-    const { authenticator } = await import("otplib");
-    const code = authenticator.generate(secret);
+    const { generate: generateTotp } = await import("otplib");
+    const code = generateTotp(secret);
 
     await request(app)
       .post("/api/v1/mfa/verify")
@@ -243,8 +243,8 @@ describe("MFA pending token flow", () => {
 
     const secret = setupRes.body.secret;
 
-    const { authenticator } = await import("otplib");
-    const code = authenticator.generate(secret);
+    const { generate: generateTotp } = await import("otplib");
+    const code = generateTotp(secret);
 
     await request(app)
       .post("/api/v1/mfa/verify")
@@ -259,7 +259,7 @@ describe("MFA pending token flow", () => {
     const mfaPendingToken = loginRes.body.mfa_pending;
 
     // Use mfa_pending token to validate MFA
-    const mfaCode = authenticator.generate(secret);
+    const mfaCode = generateTotp(secret);
     const validateRes = await request(app)
       .post("/api/v1/mfa/validate")
       .set("Authorization", `Bearer ${mfaPendingToken}`)

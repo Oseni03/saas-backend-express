@@ -1,4 +1,4 @@
-import { InvitationStatus } from "@prisma/client";
+import { InvitationStatus } from "@/generated/prisma";
 import { prisma } from "../lib/prisma";
 
 export const invitationRepository = {

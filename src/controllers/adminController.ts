@@ -1,11 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
+import type { User, Organization } from "@/generated/prisma";
 import { prisma } from "../lib/prisma";
 import { userRepository } from "../repositories/userRepository";
 import { orgRepository } from "../repositories/orgRepository";
 import { parsePagination } from "../lib/pagination";
 import { NotFoundError } from "../middleware/errors";
 
-function sanitizeUser(user: any) {
+function sanitizeUser(user: User) {
   return {
     id: user.id,
     email: user.email,
@@ -18,7 +19,7 @@ function sanitizeUser(user: any) {
   };
 }
 
-function sanitizeOrg(org: any) {
+function sanitizeOrg(org: Organization) {
   return {
     id: org.id,
     name: org.name,
@@ -49,7 +50,7 @@ export const adminController = {
   async listUsers(req: Request, res: Response, next: NextFunction) {
     try {
       const { limit, offset } = parsePagination(req.query as Record<string, unknown>);
-      const [users, total] = await Promise.all([
+      const [users] = await Promise.all([
         userRepository.listAll(limit, offset),
         userRepository.countAll(),
       ]);
@@ -62,7 +63,7 @@ export const adminController = {
   async listOrgs(req: Request, res: Response, next: NextFunction) {
     try {
       const { limit, offset } = parsePagination(req.query as Record<string, unknown>);
-      const [orgs, total] = await Promise.all([
+      const [orgs] = await Promise.all([
         orgRepository.listAll(limit, offset),
         orgRepository.countAll(),
       ]);
@@ -74,9 +75,10 @@ export const adminController = {
 
   async deactivateUser(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await userRepository.findById(req.params.userId);
+      const userId = req.params.userId as string;
+      const user = await userRepository.findById(userId);
       if (!user) throw new NotFoundError("User");
-      const updated = await userRepository.update(req.params.userId, { isActive: false });
+      const updated = await userRepository.update(userId, { isActive: false });
       res.json(sanitizeUser(updated));
     } catch (err) {
       next(err);
@@ -85,9 +87,10 @@ export const adminController = {
 
   async activateUser(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await userRepository.findById(req.params.userId);
+      const userId = req.params.userId as string;
+      const user = await userRepository.findById(userId);
       if (!user) throw new NotFoundError("User");
-      const updated = await userRepository.update(req.params.userId, { isActive: true });
+      const updated = await userRepository.update(userId, { isActive: true });
       res.json(sanitizeUser(updated));
     } catch (err) {
       next(err);

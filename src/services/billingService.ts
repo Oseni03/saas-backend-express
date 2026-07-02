@@ -12,7 +12,7 @@
 
 import crypto from "crypto";
 import axios from "axios";
-import { PlanTier, SubscriptionStatus } from "@prisma/client";
+import { PlanTier, SubscriptionStatus } from "@/generated/prisma";
 import { config } from "../config";
 import { prisma } from "../lib/prisma";
 import { orgRepository } from "../repositories/orgRepository";
@@ -224,10 +224,10 @@ export const billingService = {
     const event: PaystackWebhookEvent = JSON.parse(payload.toString());
 
     const handlers: Record<string, (data: Record<string, unknown>) => Promise<void>> = {
-      "charge.success":           onChargeSuccess,
-      "subscription.create":      onSubscriptionCreate,
-      "subscription.disable":     onSubscriptionDisable,
-      "invoice.payment_failed":   onPaymentFailed,
+      "charge.success": onChargeSuccess,
+      "subscription.create": onSubscriptionCreate,
+      "subscription.disable": onSubscriptionDisable,
+      "invoice.payment_failed": onPaymentFailed,
     };
 
     const handler = handlers[event.event];
@@ -322,7 +322,10 @@ async function onSubscriptionDisable(data: Record<string, unknown>): Promise<voi
 }
 
 async function onPaymentFailed(data: Record<string, unknown>): Promise<void> {
-  const invoice = data as { subscription: { subscription_code: string }; metadata?: Record<string, string> };
+  const invoice = data as {
+    subscription: { subscription_code: string };
+    metadata?: Record<string, string>;
+  };
   const orgId = invoice.metadata?.organizationId;
   if (!orgId) return;
 

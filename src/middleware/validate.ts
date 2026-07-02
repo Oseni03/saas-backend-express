@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { z, ZodSchema } from "zod";
+import { ZodSchema } from "zod";
 
 type ValidationTarget = "body" | "query" | "params";
 
@@ -20,7 +20,7 @@ export function validate<T extends ZodSchema>(
       return next(result.error); // Caught by errorHandler as ZodError → 422
     }
     // Replace with parsed (coerced + defaulted) data
-    (req as Record<string, unknown>)[target] = result.data;
+    (req as unknown as Record<string, unknown>)[target] = result.data;
     next();
   };
 }

@@ -4,7 +4,7 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import rateLimit from "express-rate-limit";
 
-import { config, isProduction } from "./config";
+import { config } from "./config";
 import { logger } from "./lib/logger";
 import { requestId } from "./middleware/requestId";
 import { errorHandler } from "./middleware/errorHandler";

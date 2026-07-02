@@ -1,4 +1,4 @@
-import type { User, OAuthProvider } from "@prisma/client";
+import type { OAuthProvider } from "@/generated/prisma";
 import { prisma } from "../lib/prisma";
 
 export const userRepository = {
@@ -15,11 +15,9 @@ export const userRepository = {
   findByVerificationToken: (token: string) =>
     prisma.user.findFirst({ where: { verificationToken: token } }),
 
-  findByResetToken: (token: string) =>
-    prisma.user.findFirst({ where: { resetToken: token } }),
+  findByResetToken: (token: string) => prisma.user.findFirst({ where: { resetToken: token } }),
 
-  create: (data: Parameters<typeof prisma.user.create>[0]["data"]) =>
-    prisma.user.create({ data }),
+  create: (data: Parameters<typeof prisma.user.create>[0]["data"]) => prisma.user.create({ data }),
 
   update: (id: string, data: Parameters<typeof prisma.user.update>[0]["data"]) =>
     prisma.user.update({ where: { id }, data }),

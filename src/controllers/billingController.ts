@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { billingService } from "../services/billingService";
-import { PlanTier } from "@prisma/client";
+import { PlanTier } from "@/generated/prisma";
 import { z } from "zod";
 
 const InitializeSchema = z.object({
@@ -8,7 +8,7 @@ const InitializeSchema = z.object({
   callback_url: z.string().url(),
 });
 
-const CancelSchema = z.object({});
+
 
 export const billingController = {
   /**
@@ -37,9 +37,10 @@ export const billingController = {
    */
   async verify(req: Request, res: Response, next: NextFunction) {
     try {
-      const reference = req.query.reference as string;
+      const reference = req.query.reference as string | undefined;
       if (!reference) {
-        return res.status(400).json({ error: "Missing reference query param" });
+        res.status(400).json({ error: "Missing reference query param" });
+        return;
       }
       const result = await billingService.verifyTransaction(reference);
       res.json({ plan: result.plan, organization_id: result.orgId });

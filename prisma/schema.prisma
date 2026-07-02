@@ -2,11 +2,11 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ── Enums ──────────────────────────────────────────────────────────────
@@ -48,8 +48,8 @@ enum SubscriptionStatus {
 // ── Models ─────────────────────────────────────────────────────────────
 
 model User {
-  id             String        @id @default(cuid())
-  email          String        @unique
+  id             String  @id @default(cuid())
+  email          String  @unique
   hashedPassword String?
   fullName       String?
   avatarUrl      String?
@@ -58,8 +58,8 @@ model User {
   isSuperuser Boolean @default(false)
   isVerified  Boolean @default(false)
 
-  verificationToken String?
-  resetToken        String?
+  verificationToken   String?
+  resetToken          String?
   resetTokenExpiresAt DateTime?
 
   oauthProvider   OAuthProvider @default(LOCAL)
@@ -140,15 +140,15 @@ model Invitation {
 }
 
 model Subscription {
-  id             String             @id @default(cuid())
-  organizationId String             @unique
-  paystackSubCode   String             @unique
-  paystackPlanCode  String
-  status         SubscriptionStatus
-  periodStart    DateTime
-  periodEnd      DateTime
-  cancelAtEnd    Boolean            @default(false)
-  canceledAt     DateTime?
+  id               String             @id @default(cuid())
+  organizationId   String             @unique
+  paystackSubCode  String             @unique
+  paystackPlanCode String
+  status           SubscriptionStatus
+  periodStart      DateTime
+  periodEnd        DateTime
+  cancelAtEnd      Boolean            @default(false)
+  canceledAt       DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -159,12 +159,12 @@ model Subscription {
 }
 
 model Notification {
-  id     String  @id @default(cuid())
+  id     String    @id @default(cuid())
   userId String
   title  String
   body   String
   link   String?
-  isRead Boolean @default(false)
+  isRead Boolean   @default(false)
   readAt DateTime?
   meta   Json?
 

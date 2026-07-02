@@ -4,10 +4,10 @@ import { z } from "zod";
 const envSchema = z.object({
   // App
   APP_NAME: z.string().default("Express SaaS"),
-  NODE_ENV: z.enum(["development", "staging", "production"]).default("development"),
+  NODE_ENV: z.enum(["development", "staging", "production", "test"]).default("development"),
   APP_SECRET_KEY: z.string().min(32, "APP_SECRET_KEY must be at least 32 chars"),
-  APP_BASE_URL: z.string().url().default("http://localhost:4000"),
-  FRONTEND_URL: z.string().url().default("http://localhost:3000"),
+  APP_BASE_URL: z.url().default("http://localhost:4000"),
+  FRONTEND_URL: z.url().default("http://localhost:3000"),
   PORT: z.coerce.number().default(4000),
 
   // Database
@@ -30,7 +30,7 @@ const envSchema = z.object({
 
   // Email
   RESEND_API_KEY: z.string().default(""),
-  EMAIL_FROM: z.string().email().default("noreply@yoursaas.com"),
+  EMAIL_FROM: z.email().default("noreply@yoursaas.com"),
   EMAIL_FROM_NAME: z.string().default("Your SaaS"),
 
   // Paystack

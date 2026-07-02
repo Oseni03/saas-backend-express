@@ -1,18 +1,10 @@
 import type { Request } from "express";
 import { auditLogRepository } from "../repositories/auditLogRepository";
 
-interface LogInput {
-  action: string;
-  userId?: string;
-  organizationId?: string;
-  resourceType?: string;
-  resourceId?: string;
-  request?: Request;
-  meta?: Record<string, unknown>;
-}
+type CreateInput = Parameters<typeof auditLogRepository.create>[0];
 
 export const auditLogService = {
-  async log(input: LogInput) {
+  async log(input: CreateInput & { request?: Request }) {
     const { request, ...rest } = input;
 
     let ipAddress: string | undefined;
@@ -26,6 +18,6 @@ export const auditLogService = {
       userAgent = request.headers["user-agent"];
     }
 
-    return auditLogRepository.create({ ...rest, ipAddress, userAgent });
+    return auditLogRepository.create({ ...rest, ipAddress, userAgent } as CreateInput);
   },
 };

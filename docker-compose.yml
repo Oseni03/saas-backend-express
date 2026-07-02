@@ -45,14 +45,5 @@ services:
       timeout: 5s
       retries: 5
 
-  stripe-cli:
-    image: stripe/stripe-cli
-    command: listen --forward-to api:4000/api/v1/billing/webhooks/stripe
-    environment:
-      STRIPE_API_KEY: ${STRIPE_SECRET_KEY}
-    profiles: ["stripe"]
-    depends_on:
-      - api
-
 volumes:
   pgdata:

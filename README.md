@@ -39,19 +39,24 @@ src/
 ```bash
 # 1. Clone and configure
 cp .env.example .env
-# Fill in your secrets
+# Fill in your secrets (at minimum DATABASE_URL, JWT_ACCESS_SECRET,
+# JWT_REFRESH_SECRET, APP_SECRET_KEY)
 
 # 2. Install dependencies
 npm install
 
-# 3. Start services
-make dev
+# 3. Start infrastructure (Postgres + Redis)
+docker compose up db redis -d
 
-# 4. Run migrations
-make db-migrate
+# 4. Generate Prisma client & run migrations
+npx prisma generate
+npx prisma migrate deploy
 
-# 5. Seed dev data
-make db-seed
+# 5. (Optional) Seed dev data
+npx tsx scripts/seed.ts
+
+# 6. Start the dev server (hot-reload)
+npm run dev
 ```
 
 ## API Endpoints
@@ -115,16 +120,22 @@ PATCH /api/v1/admin/users/:userId/activate
 ## Commands
 
 ```bash
-make dev            # Start Docker dev environment
-make db-migrate     # Apply Prisma migrations
-make db-seed        # Seed dev data
-make db-studio      # Open Prisma Studio
-make test           # Run tests
-make test-coverage  # Run tests with coverage
-make lint           # ESLint
-make format         # Prettier
-make typecheck      # tsc --noEmit
-make paystack       # Start Paystack webhook forwarding (via Paystack CLI)
+npm run dev            # Start dev server with hot-reload (tsx watch)
+npm run build          # Compile TypeScript to dist/
+npm start              # Run production build (node dist/server.js)
+npm run test           # Run tests
+npm run test:coverage  # Run tests with coverage
+npm run lint           # ESLint
+npm run format         # Prettier
+npm run typecheck      # tsc --noEmit
+
+npx prisma migrate deploy   # Apply Prisma migrations
+npx prisma migrate dev      # Create & apply dev migrations
+npx prisma studio           # Open Prisma Studio (DB GUI)
+npx tsx scripts/seed.ts     # Seed dev data
+
+docker compose up -d        # Start Postgres + Redis
+docker compose stop         # Stop all containers
 ```
 
 ## Paystack Billing Flow

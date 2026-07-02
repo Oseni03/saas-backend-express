@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { PlanTier } from "@prisma/client";
-import { getLimits, assertMemberLimit, assertFeatureAvailable } from "../../src/services/permissionsService";
+import {
+  getLimits,
+  assertMemberLimit,
+  assertFeatureAvailable,
+} from "../../src/services/permissionsService";
 import { PaymentRequiredError } from "../../src/middleware/errors";
 
 describe("permissionsService", () => {
@@ -37,10 +41,10 @@ describe("permissionsService", () => {
   });
 
   it("blocks SSO on FREE plan", () => {
-    expect(() => assertFeatureAvailable(PlanTier.FREE, "sso")).toThrow(PaymentRequiredError);
+    expect(() => assertFeatureAvailable(PlanTier.FREE, "ssoEnabled")).toThrow(PaymentRequiredError);
   });
 
   it("allows SSO on ENTERPRISE plan", () => {
-    expect(() => assertFeatureAvailable(PlanTier.ENTERPRISE, "sso")).not.toThrow();
+    expect(() => assertFeatureAvailable(PlanTier.ENTERPRISE, "ssoEnabled")).not.toThrow();
   });
 });

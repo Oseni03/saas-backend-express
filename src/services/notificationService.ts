@@ -1,16 +1,9 @@
 import { prisma } from "../lib/prisma";
 
-interface CreateNotificationInput {
-  userId: string;
-  title: string;
-  body: string;
-  link?: string;
-  meta?: Record<string, unknown>;
-}
+type NotificationCreateInput = Parameters<typeof prisma.notification.create>[0]["data"];
 
 export const notificationService = {
-  create: (input: CreateNotificationInput) =>
-    prisma.notification.create({ data: input }),
+  create: (input: NotificationCreateInput) => prisma.notification.create({ data: input }),
 
   listForUser: (userId: string, limit: number, offset: number) =>
     prisma.notification.findMany({
@@ -20,8 +13,7 @@ export const notificationService = {
       skip: offset,
     }),
 
-  countUnread: (userId: string) =>
-    prisma.notification.count({ where: { userId, isRead: false } }),
+  countUnread: (userId: string) => prisma.notification.count({ where: { userId, isRead: false } }),
 
   markRead: (id: string, userId: string) =>
     prisma.notification.updateMany({
@@ -37,7 +29,12 @@ export const notificationService = {
 
   // ── Convenience helpers ──────────────────────────────────────────
 
-  notifyInvitationAccepted: (inviterUserId: string, joinerName: string, orgName: string, orgId: string) =>
+  notifyInvitationAccepted: (
+    inviterUserId: string,
+    joinerName: string,
+    orgName: string,
+    orgId: string
+  ) =>
     prisma.notification.create({
       data: {
         userId: inviterUserId,

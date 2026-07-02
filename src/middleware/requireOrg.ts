@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { MemberRole } from "@prisma/client";
+import { MemberRole } from "@/generated/prisma";
 import { prisma } from "../lib/prisma";
 import { ForbiddenError, NotFoundError } from "./errors";
 
@@ -19,11 +19,11 @@ export async function requireOrg(req: Request, _res: Response, next: NextFunctio
     const { orgId } = req.params;
     const userId = req.user!.id;
 
-    const org = await prisma.organization.findUnique({ where: { id: orgId } });
+    const org = await prisma.organization.findUnique({ where: { id: orgId as string } });
     if (!org) throw new NotFoundError("Organization");
 
     const membership = await prisma.membership.findUnique({
-      where: { userId_organizationId: { userId, organizationId: orgId } },
+      where: { userId_organizationId: { userId, organizationId: orgId as string } },
     });
     if (!membership) throw new ForbiddenError("You are not a member of this organization");
 

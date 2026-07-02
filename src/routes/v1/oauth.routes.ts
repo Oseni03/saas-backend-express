@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { Request, Response, NextFunction } from "express";
 import axios from "axios";
-import { OAuthProvider } from "@prisma/client";
+import { OAuthProvider } from "@/generated/prisma";
 import { authService } from "../../services/authService";
 import { config } from "../../config";
 import { BadRequestError } from "../../middleware/errors";

@@ -1,4 +1,4 @@
-import { MemberRole, InvitationStatus } from "@prisma/client";
+import { MemberRole, InvitationStatus } from "@/generated/prisma";
 import slugify from "slug";
 import dayjs from "dayjs";
 import { z } from "zod";
@@ -145,7 +145,9 @@ export const orgService = {
     ]);
 
     logger.info({ orgId: invitation.organizationId, userId }, "org.invitation_accepted");
-    return orgRepository.findById(invitation.organizationId);
+    const org = await orgRepository.findById(invitation.organizationId);
+    if (!org) throw new NotFoundError("Organization");
+    return org;
   },
 
   async updateMemberRole(orgId: string, targetUserId: string, newRole: MemberRole) {

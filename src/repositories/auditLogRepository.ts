@@ -1,18 +1,9 @@
 import { prisma } from "../lib/prisma";
 
-interface CreateAuditLogInput {
-  action: string;
-  userId?: string;
-  organizationId?: string;
-  resourceType?: string;
-  resourceId?: string;
-  ipAddress?: string;
-  userAgent?: string;
-  meta?: Record<string, unknown>;
-}
+type AuditLogCreateInput = Parameters<typeof prisma.auditLog.create>[0]["data"];
 
 export const auditLogRepository = {
-  create: (data: CreateAuditLogInput) => prisma.auditLog.create({ data }),
+  create: (data: AuditLogCreateInput) => prisma.auditLog.create({ data }),
 
   listByOrg: (organizationId: string, limit: number, offset: number) =>
     prisma.auditLog.findMany({

@@ -11,3 +11,5 @@ Thumbs.db
 .idea/
 prisma/migrations/dev.db
 prisma/dev.db
+
+/src/generated/

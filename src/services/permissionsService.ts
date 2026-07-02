@@ -1,4 +1,4 @@
-import { PlanTier } from "@prisma/client";
+import { PlanTier } from "@/generated/prisma";
 import { PaymentRequiredError } from "../middleware/errors";
 import type { PlanLimits } from "../types";
 
@@ -42,7 +42,7 @@ export function assertMemberLimit(plan: PlanTier, currentCount: number): void {
   }
 }
 
-export function assertFeatureAvailable(plan: PlanTier, feature: "sso" | "prioritySupport"): void {
+export function assertFeatureAvailable(plan: PlanTier, feature: "ssoEnabled" | "prioritySupport"): void {
   const limits = getLimits(plan);
   if (!limits[feature]) {
     throw new PaymentRequiredError(

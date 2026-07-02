@@ -91,7 +91,7 @@ describe("POST /api/v1/billing/organizations/:orgId/initialize", () => {
 
     // Add the member
     await prisma.membership.create({
-      data: { userId: memberId, organizationId: orgRes.body.organization_id, role: "MEMBER" },
+      data: { userId: memberId, organizationId: orgRes.body.id, role: "MEMBER" },
     });
 
     const res = await request(app)
@@ -194,6 +194,6 @@ describe("POST /api/v1/billing/webhooks/paystack", () => {
 
     // 200 OK even if no org found in metadata — we handle gracefully
     expect(res.status).toBe(200);
-    expect(res.body.received).toBe(true);
+    expect(res.body).toEqual({});
   });
 });

@@ -1,7 +1,7 @@
-import { OAuthProvider } from "@prisma/client";
+import { OAuthProvider } from "@/generated/prisma";
 import dayjs from "dayjs";
 
-import { issueTokenPair, issueMfaPendingToken } from "../lib/jwt";
+import { issueTokenPair, issueMfaPendingToken, verifyRefreshToken } from "../lib/jwt";
 import { hashPassword, verifyPassword, generateToken, hashToken } from "../lib/crypto";
 import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from "../lib/email";
 import { userRepository } from "../repositories/userRepository";
@@ -12,7 +12,7 @@ import { ConflictError, UnauthorizedError, BadRequestError } from "../middleware
 import { z } from "zod";
 
 export const RegisterSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z
     .string()
     .min(8)
@@ -77,7 +77,6 @@ export const authService = {
   },
 
   async refresh(refreshToken: string) {
-    const { verifyRefreshToken } = await import("../lib/jwt");
     const payload = verifyRefreshToken(refreshToken);
     const user = await userRepository.findById(payload.sub);
     if (!user?.isActive) throw new UnauthorizedError("User not found or inactive");

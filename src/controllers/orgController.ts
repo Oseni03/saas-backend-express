@@ -1,9 +1,11 @@
 import type { Request, Response, NextFunction } from "express";
-import { MemberRole } from "@prisma/client";
+import { MemberRole } from "@/generated/prisma";
+import type { Organization, Membership, Invitation } from "@/generated/prisma";
 import { orgService } from "../services/orgService";
-import { orgRepository } from "../repositories/orgRepository";
+import { prisma } from "../lib/prisma";
+import { invitationRepository } from "../repositories/invitationRepository";
 
-function sanitizeOrg(org: any) {
+function sanitizeOrg(org: Organization) {
   return {
     id: org.id,
     name: org.name,
@@ -14,7 +16,7 @@ function sanitizeOrg(org: any) {
   };
 }
 
-function sanitizeMembership(m: any) {
+function sanitizeMembership(m: Membership & { user?: { email: string; fullName: string | null; avatarUrl: string | null } }) {
   return {
     user_id: m.userId,
     organization_id: m.organizationId,
@@ -26,7 +28,7 @@ function sanitizeMembership(m: any) {
   };
 }
 
-function sanitizeInvitation(inv: any) {
+function sanitizeInvitation(inv: Invitation) {
   return {
     id: inv.id,
     organization_id: inv.organizationId,
@@ -79,7 +81,7 @@ export const orgController = {
 
   async invite(req: Request, res: Response, next: NextFunction) {
     try {
-      const invitation = await orgService.inviteMember(req.org!.id, req.body, req.user!.id);
+      await orgService.inviteMember(req.org!.id, req.body, req.user!.id);
       res.status(201).json({});
     } catch (err) {
       next(err);
@@ -99,7 +101,7 @@ export const orgController = {
     try {
       const membership = await orgService.updateMemberRole(
         req.org!.id,
-        req.params.userId,
+        req.params.userId as string,
         req.body.role as MemberRole
       );
       res.json(sanitizeMembership(membership));
@@ -110,7 +112,7 @@ export const orgController = {
 
   async removeMember(req: Request, res: Response, next: NextFunction) {
     try {
-      await orgService.removeMember(req.org!.id, req.params.userId);
+      await orgService.removeMember(req.org!.id, req.params.userId as string);
       res.status(204).send();
     } catch (err) {
       next(err);
@@ -136,7 +138,6 @@ export const orgController = {
 
   async listInvitations(req: Request, res: Response, next: NextFunction) {
     try {
-      const { invitationRepository } = await import("../repositories/invitationRepository");
       const invitations = await invitationRepository.listByOrg(req.org!.id);
       res.json(invitations.map(sanitizeInvitation));
     } catch (err) {
@@ -144,6 +145,3 @@ export const orgController = {
     }
   },
 };
-
-// Import prisma directly here (needed by listMembers)
-import { prisma } from "../lib/prisma";

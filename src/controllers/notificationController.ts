@@ -1,8 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
+import type { Notification } from "@/generated/prisma";
 import { notificationService } from "../services/notificationService";
 import { parsePagination } from "../lib/pagination";
 
-function sanitizeNotification(notif: any) {
+function sanitizeNotification(notif: Notification) {
   return {
     id: notif.id,
     title: notif.title,
@@ -34,7 +35,7 @@ export const notificationController = {
 
   async markRead(req: Request, res: Response, next: NextFunction) {
     try {
-      await notificationService.markRead(req.params.id, req.user!.id);
+      await notificationService.markRead(req.params.id as string, req.user!.id);
       res.status(204).send();
     } catch (err) {
       next(err);
