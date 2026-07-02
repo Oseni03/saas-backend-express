@@ -79,11 +79,11 @@ export async function requireAdmin(req: Request, _res: Response, next: NextFunct
       return next();
     }
 
-    // Check for admin role in any organization
+    // Check for admin or owner role in any organization
     const adminRole = await prisma.membership.findFirst({
       where: {
         userId: user.id,
-        role: MemberRole.ADMIN,
+        role: { in: [MemberRole.ADMIN, MemberRole.OWNER] },
       },
     });
 

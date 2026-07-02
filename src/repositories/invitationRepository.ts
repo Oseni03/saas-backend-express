@@ -2,6 +2,9 @@ import { InvitationStatus } from "@/generated/prisma";
 import { prisma } from "../lib/prisma";
 
 export const invitationRepository = {
+  findById: (id: string) =>
+    prisma.invitation.findUnique({ where: { id } }),
+
   findByToken: (token: string) =>
     prisma.invitation.findUnique({
       where: { token },

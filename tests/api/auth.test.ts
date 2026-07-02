@@ -25,7 +25,7 @@ describe("POST /api/v1/auth/register", () => {
     expect(res.body.user.is_verified).toBe(false);
     expect(res.body).toHaveProperty("access_token");
     expect(res.body).toHaveProperty("refresh_token");
-    expect(res.body.token_type).toBe("Bearer");
+    expect(res.body.token_type).toBe("bearer");
   });
 
   it("returns 409 for duplicate email", async () => {
@@ -62,7 +62,7 @@ describe("POST /api/v1/auth/login", () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty("access_token");
     expect(res.body).toHaveProperty("refresh_token");
-    expect(res.body.token_type).toBe("Bearer");
+    expect(res.body.token_type).toBe("bearer");
   });
 
   it("returns 401 for wrong password", async () => {
@@ -268,7 +268,7 @@ describe("MFA pending token flow", () => {
     expect(validateRes.status).toBe(200);
     expect(validateRes.body).toHaveProperty("access_token");
     expect(validateRes.body).toHaveProperty("refresh_token");
-    expect(validateRes.body.token_type).toBe("Bearer");
+    expect(validateRes.body.token_type).toBe("bearer");
   });
 
   it("returns 422 when code query parameter is missing", async () => {

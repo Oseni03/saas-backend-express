@@ -46,7 +46,7 @@ export function issueTokenPair(userId: string) {
   return {
     access_token: signAccessToken(userId),
     refresh_token: signRefreshToken(userId),
-    token_type: "Bearer" as const,
+    token_type: "bearer" as const,
   };
 }
 

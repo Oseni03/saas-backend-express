@@ -35,6 +35,15 @@ export const authController = {
     }
   },
 
+  async logout(req: Request, res: Response, next: NextFunction) {
+    try {
+      await authService.logout(req.body.refresh_token);
+      res.json({});
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async refresh(req: Request, res: Response, next: NextFunction) {
     try {
       const tokens = await authService.refresh(req.body.refresh_token);

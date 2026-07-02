@@ -29,6 +29,8 @@ export const LoginSchema = z.object({
 
 export const RefreshSchema = z.object({ refresh_token: z.string() });
 
+export const LogoutSchema = z.object({ refresh_token: z.string() });
+
 export const VerifyEmailSchema = z.object({ token: z.string() });
 
 export const ForgotPasswordSchema = z.object({ email: z.string().email() });
@@ -128,6 +130,15 @@ export const authService = {
 
     logger.info({ userId: user.id }, "auth.password_reset");
     return updated;
+  },
+
+  async logout(refreshToken: string) {
+    try {
+      verifyRefreshToken(refreshToken);
+    } catch {
+      // Ignore invalid tokens — still return success
+    }
+    logger.info("auth.logout");
   },
 
   async oauthLoginOrRegister(

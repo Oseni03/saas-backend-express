@@ -59,7 +59,7 @@ describe("POST /api/v1/billing/organizations/:orgId/initialize", () => {
       .send({ plan: PlanTier.FREE, callbackUrl: "http://localhost:3000/billing/callback" });
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/free plan/i);
+    expect(res.body.message).toMatch(/free plan/i);
   });
 
   it("returns 401 without auth", async () => {
@@ -142,7 +142,7 @@ describe("GET /api/v1/billing/organizations/:orgId/manage", () => {
       .set(bearer(token));
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/no billing account/i);
+    expect(res.body.message).toMatch(/no billing account/i);
   });
 
   it("returns manage URL when customer exists", async () => {
@@ -177,7 +177,7 @@ describe("POST /api/v1/billing/webhooks/paystack", () => {
       .send(JSON.stringify({ event: "charge.success", data: {} }));
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/signature/i);
+    expect(res.body.message).toMatch(/signature/i);
   });
 
   it("returns 200 for valid signature", async () => {

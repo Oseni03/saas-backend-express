@@ -133,7 +133,7 @@ describe("Admin endpoints - requireAdmin middleware", () => {
     await prisma.user.delete({ where: { id: superuser.id } });
   });
 
-  it("GET /api/v1/admin/users returns paginated user list", async () => {
+  it("GET /api/v1/admin/users returns user list", async () => {
     // Create a superuser
     const superuser = await prisma.user.create({
       data: {
@@ -149,18 +149,17 @@ describe("Admin endpoints - requireAdmin middleware", () => {
     const accessToken = signAccessToken(superuser.id);
 
     const res = await request(app)
-      .get("/api/v1/admin/users?page=1&limit=10")
+      .get("/api/v1/admin/users")
       .set("Authorization", `Bearer ${accessToken}`);
 
     expect(res.status).toBe(200);
-    expect(Array.isArray(res.body.data)).toBe(true);
-    expect(res.body).toHaveProperty("pagination");
+    expect(Array.isArray(res.body)).toBe(true);
 
     // Cleanup
     await prisma.user.delete({ where: { id: superuser.id } });
   });
 
-  it("GET /api/v1/admin/organizations returns paginated org list", async () => {
+  it("GET /api/v1/admin/organizations returns org list", async () => {
     // Create a superuser
     const superuser = await prisma.user.create({
       data: {
@@ -176,12 +175,11 @@ describe("Admin endpoints - requireAdmin middleware", () => {
     const accessToken = signAccessToken(superuser.id);
 
     const res = await request(app)
-      .get("/api/v1/admin/organizations?page=1&limit=10")
+      .get("/api/v1/admin/organizations")
       .set("Authorization", `Bearer ${accessToken}`);
 
     expect(res.status).toBe(200);
-    expect(Array.isArray(res.body.data)).toBe(true);
-    expect(res.body).toHaveProperty("pagination");
+    expect(Array.isArray(res.body)).toBe(true);
 
     // Cleanup
     await prisma.user.delete({ where: { id: superuser.id } });

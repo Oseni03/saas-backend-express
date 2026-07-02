@@ -33,8 +33,10 @@ function sanitizeInvitation(inv: Invitation) {
     id: inv.id,
     organization_id: inv.organizationId,
     email: inv.email,
+    role: inv.role,
     status: inv.status,
     expires_at: inv.expiresAt,
+    created_at: inv.createdAt,
   };
 }
 
@@ -140,6 +142,15 @@ export const orgController = {
     try {
       const invitations = await invitationRepository.listByOrg(req.org!.id);
       res.json(invitations.map(sanitizeInvitation));
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async revokeInvitation(req: Request, res: Response, next: NextFunction) {
+    try {
+      await orgService.revokeInvitation(req.org!.id, req.params.invitationId as string);
+      res.json({});
     } catch (err) {
       next(err);
     }

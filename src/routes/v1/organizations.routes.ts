@@ -32,12 +32,13 @@ router.delete("/:orgId",      requireOrg, requireRole("OWNER"),   orgController.
 
 // ── Members ───────────────────────────────────────────────────────────────────
 router.get("/:orgId/members",              requireOrg,                       orgController.listMembers);
-router.delete("/:orgId/members/:userId",   requireOrg,                       orgController.removeMember);
+router.delete("/:orgId/members/:userId",   requireOrg, requireRole("ADMIN"), orgController.removeMember);
 router.patch("/:orgId/members/:userId",    requireOrg, requireRole("ADMIN"),  validate(UpdateMemberRoleSchema), orgController.updateMemberRole);
 
 // ── Invitations ───────────────────────────────────────────────────────────────
 router.get("/:orgId/invitations",    requireOrg, requireRole("ADMIN"), orgController.listInvitations);
 router.post("/:orgId/invitations",   requireOrg, requireRole("ADMIN"), validate(InviteMemberSchema), orgController.invite);
+router.delete("/:orgId/invitations/:invitationId", requireOrg, requireRole("ADMIN"), orgController.revokeInvitation);
 
 // Accept lives outside /:orgId scope (user may not be a member yet)
 router.post("/invitations/accept",  validate(AcceptInviteSchema), orgController.acceptInvitation);

@@ -32,7 +32,7 @@ describe("GET /api/v1/notifications", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.items).toEqual([]);
-    expect(res.body.unreadCount).toBe(0);
+    expect(res.body.unread_count).toBe(0);
   });
 
   it("returns notifications with correct unread count", async () => {
@@ -52,7 +52,7 @@ describe("GET /api/v1/notifications", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.items).toHaveLength(3);
-    expect(res.body.unreadCount).toBe(2);
+    expect(res.body.unread_count).toBe(2);
   });
 });
 

@@ -162,6 +162,19 @@ export const orgService = {
     });
   },
 
+  async revokeInvitation(orgId: string, invitationId: string) {
+    const invitation = await invitationRepository.findById(invitationId);
+    if (!invitation || invitation.organizationId !== orgId) {
+      throw new NotFoundError("Invitation");
+    }
+    if (invitation.status !== InvitationStatus.PENDING) {
+      throw new BadRequestError(`Cannot revoke a ${invitation.status.toLowerCase()} invitation`);
+    }
+
+    await invitationRepository.update(invitationId, { status: InvitationStatus.REVOKED });
+    logger.info({ orgId, invitationId }, "org.invitation_revoked");
+  },
+
   async removeMember(orgId: string, targetUserId: string) {
     const membership = await prisma.membership.findUnique({
       where: { userId_organizationId: { userId: targetUserId, organizationId: orgId } },

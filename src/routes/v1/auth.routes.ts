@@ -6,6 +6,7 @@ import {
   RegisterSchema,
   LoginSchema,
   RefreshSchema,
+  LogoutSchema,
   VerifyEmailSchema,
   ForgotPasswordSchema,
   ResetPasswordSchema,
@@ -14,6 +15,7 @@ import {
 const router = Router();
 
 router.post("/register",       validate(RegisterSchema),       authController.register);
+router.post("/logout",         validate(LogoutSchema),         authController.logout);
 router.post("/login",          validate(LoginSchema),          authController.login);
 router.post("/refresh",        validate(RefreshSchema),        authController.refresh);
 router.post("/verify-email",   validate(VerifyEmailSchema),    authController.verifyEmail);

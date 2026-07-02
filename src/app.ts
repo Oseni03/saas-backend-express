@@ -59,7 +59,11 @@ export function createApp() {
       max: config.RATE_LIMIT_MAX,
       standardHeaders: true,
       legacyHeaders: false,
-      message: { error: "Too many requests. Please slow down." },
+      message: {
+        message: "Too many requests. Please slow down.",
+        code: "RATE_LIMITED",
+        statusCode: 429,
+      },
     })
   );
 
@@ -78,7 +82,9 @@ export function createApp() {
 
   // ── 404 handler ─────────────────────────────────────────────────────
   app.use((_req, res) => {
-    res.status(404).json({ error: "Route not found" });
+    res
+      .status(404)
+      .json({ message: "Route not found", code: "RESOURCE_NOT_FOUND", statusCode: 404 });
   });
 
   // ── Global error handler (must be last) ────────────────────────────

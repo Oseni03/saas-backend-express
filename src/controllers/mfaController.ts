@@ -7,7 +7,7 @@ export const mfaController = {
       const result = await mfaService.setup(req.user!.id);
       res.json({
         secret: result.secret,
-        otpauthUrl: result.otpauthUrl,
+        otpauth_url: result.otpauthUrl,
       });
     } catch (err) {
       next(err);
