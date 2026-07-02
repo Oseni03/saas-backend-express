@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/node";
 import { createApp } from "./app";
 import { config } from "./config";
+import { project } from "./config/project";
 import { logger } from "./lib/logger";
 import { prisma } from "./lib/prisma";
 import { redis } from "./lib/redis";
@@ -34,11 +35,11 @@ async function shutdown(signal: string) {
     }
   });
 
-  // Force kill after 10s
+  // Force kill after timeout
   setTimeout(() => {
     logger.error("shutdown.forced");
     process.exit(1);
-  }, 10_000);
+  }, project.gracefulShutdownTimeoutMs);
 }
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));

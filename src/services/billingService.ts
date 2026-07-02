@@ -14,6 +14,7 @@ import crypto from "crypto";
 import axios from "axios";
 import { PlanTier, SubscriptionStatus } from "@/generated/prisma";
 import { config } from "../config";
+import { project } from "../config/project";
 import { prisma } from "../lib/prisma";
 import { orgRepository } from "../repositories/orgRepository";
 import { logger } from "../lib/logger";
@@ -22,7 +23,7 @@ import { BadRequestError, NotFoundError } from "../middleware/errors";
 // ── Paystack HTTP client ──────────────────────────────────────────────────────
 
 const paystackApi = axios.create({
-  baseURL: "https://api.paystack.co",
+  baseURL: project.billing.paystackApiBaseUrl,
   headers: {
     Authorization: `Bearer ${config.PAYSTACK_SECRET_KEY}`,
     "Content-Type": "application/json",
@@ -213,7 +214,7 @@ export const billingService = {
   async handleWebhook(payload: Buffer, paystackSignature: string): Promise<void> {
     // Verify signature
     const expectedHash = crypto
-      .createHmac("sha512", config.PAYSTACK_WEBHOOK_SECRET)
+      .createHmac(project.billing.webhookHmacAlgorithm, config.PAYSTACK_WEBHOOK_SECRET)
       .update(payload)
       .digest("hex");
 
@@ -341,6 +342,6 @@ async function onPaymentFailed(data: Record<string, unknown>): Promise<void> {
 
 function nextBillingDate(): Date {
   const d = new Date();
-  d.setMonth(d.getMonth() + 1);
+  d.setMonth(d.getMonth() + project.billing.nextBillingMonthOffset);
   return d;
 }

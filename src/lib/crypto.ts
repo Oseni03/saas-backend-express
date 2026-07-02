@@ -1,10 +1,9 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-
-const SALT_ROUNDS = 12;
+import { project } from "../config/project";
 
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, SALT_ROUNDS);
+  return bcrypt.hash(password, project.bcryptRounds);
 }
 
 export async function verifyPassword(plain: string, hashed: string): Promise<boolean> {

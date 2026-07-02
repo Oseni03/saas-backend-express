@@ -1,36 +1,10 @@
 import { PlanTier } from "@/generated/prisma";
 import { PaymentRequiredError } from "../middleware/errors";
+import { project } from "../config/project";
 import type { PlanLimits } from "../types";
 
-const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
-  FREE: {
-    maxMembers: 5,
-    maxProjects: 3,
-    auditLogRetentionDays: 7,
-    mfaRequired: false,
-    ssoEnabled: false,
-    prioritySupport: false,
-  },
-  PRO: {
-    maxMembers: 50,
-    maxProjects: null,
-    auditLogRetentionDays: 90,
-    mfaRequired: false,
-    ssoEnabled: false,
-    prioritySupport: true,
-  },
-  ENTERPRISE: {
-    maxMembers: null,
-    maxProjects: null,
-    auditLogRetentionDays: 365,
-    mfaRequired: true,
-    ssoEnabled: true,
-    prioritySupport: true,
-  },
-};
-
 export function getLimits(plan: PlanTier): PlanLimits {
-  return PLAN_LIMITS[plan];
+  return project.planLimits[plan] as PlanLimits;
 }
 
 export function assertMemberLimit(plan: PlanTier, currentCount: number): void {

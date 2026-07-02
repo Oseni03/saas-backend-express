@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { hashPassword, verifyPassword } from "../lib/crypto";
 import { userRepository } from "../repositories/userRepository";
+import { project } from "../config/project";
 import { UnauthorizedError } from "../middleware/errors";
 
 const UpdateProfileSchema = z.object({
@@ -11,7 +12,7 @@ const UpdateProfileSchema = z.object({
 
 const ChangePasswordSchema = z.object({
   current_password: z.string(),
-  new_password: z.string().min(8).max(128),
+  new_password: z.string().min(project.password.minLength).max(project.password.maxLength),
 });
 
 function sanitize(user: NonNullable<Awaited<ReturnType<typeof userRepository.findById>>>) {

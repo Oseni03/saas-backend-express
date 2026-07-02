@@ -5,6 +5,7 @@ import pinoHttp from "pino-http";
 import rateLimit from "express-rate-limit";
 
 import { config } from "./config";
+import { project } from "./config/project";
 import { logger } from "./lib/logger";
 import { requestId } from "./middleware/requestId";
 import { errorHandler } from "./middleware/errorHandler";
@@ -21,16 +22,16 @@ export function createApp() {
     cors({
       origin: config.FRONTEND_URL,
       credentials: true,
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization", "X-Request-ID"],
+      methods: project.cors.methods,
+      allowedHeaders: project.cors.allowedHeaders,
     })
   );
 
   // ── Raw body for Paystack webhooks (must come before json middleware) ─
-  app.use("/api/v1/billing/webhooks/paystack", express.raw({ type: "application/json" }));
+  app.use(`${project.apiPrefix}/billing/webhooks/paystack`, express.raw({ type: "application/json" }));
 
   // ── Body parsing ────────────────────────────────────────────────────
-  app.use(express.json({ limit: "1mb" }));
+  app.use(express.json({ limit: project.jsonBodyLimit }));
   app.use(express.urlencoded({ extended: true }));
 
   // ── Request ID ──────────────────────────────────────────────────────
@@ -41,7 +42,7 @@ export function createApp() {
     pinoHttp({
       logger,
       autoLogging: {
-        ignore: (req) => ["/api/v1/health", "/api/v1/ready"].includes(req.url ?? ""),
+        ignore: (req) => project.healthCheckPaths.includes(req.url ?? ""),
       },
       customLogLevel: (_req, res) => {
         if (res.statusCode >= 500) return "error";
@@ -69,16 +70,16 @@ export function createApp() {
 
   // Stricter limits on auth endpoints
   app.use(
-    "/api/v1/auth/login",
-    rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false })
+    `${project.apiPrefix}/auth/login`,
+    rateLimit({ windowMs: project.rateLimit.login.windowMs, max: project.rateLimit.login.max, standardHeaders: true, legacyHeaders: false })
   );
   app.use(
-    "/api/v1/auth/register",
-    rateLimit({ windowMs: 60 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false })
+    `${project.apiPrefix}/auth/register`,
+    rateLimit({ windowMs: project.rateLimit.register.windowMs, max: project.rateLimit.register.max, standardHeaders: true, legacyHeaders: false })
   );
 
   // ── API routes ──────────────────────────────────────────────────────
-  app.use("/api/v1", v1Router);
+  app.use(project.apiPrefix, v1Router);
 
   // ── 404 handler ─────────────────────────────────────────────────────
   app.use((_req, res) => {

@@ -1,14 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
 import { MemberRole } from "@/generated/prisma";
 import { prisma } from "../lib/prisma";
+import { project } from "../config/project";
 import { ForbiddenError, NotFoundError } from "./errors";
 
-const ROLE_RANK: Record<MemberRole, number> = {
-  VIEWER: 0,
-  MEMBER: 1,
-  ADMIN: 2,
-  OWNER: 3,
-};
+const ROLE_RANK = project.roleRank as Record<MemberRole, number>;
 
 /**
  * Loads org from req.params.orgId and verifies the current user is a member.

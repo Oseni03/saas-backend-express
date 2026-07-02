@@ -6,6 +6,7 @@ import { hashPassword, verifyPassword, generateToken, hashToken } from "../lib/c
 import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from "../lib/email";
 import { userRepository } from "../repositories/userRepository";
 import { logger } from "../lib/logger";
+import { project } from "../config/project";
 import { ConflictError, UnauthorizedError, BadRequestError } from "../middleware/errors";
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
@@ -15,8 +16,8 @@ export const RegisterSchema = z.object({
   email: z.email(),
   password: z
     .string()
-    .min(8)
-    .max(128)
+    .min(project.password.minLength)
+    .max(project.password.maxLength)
     .refine((v) => /[A-Z]/.test(v), "Must contain an uppercase letter")
     .refine((v) => /[0-9]/.test(v), "Must contain a digit"),
   full_name: z.string().max(255).optional(),
@@ -37,7 +38,7 @@ export const ForgotPasswordSchema = z.object({ email: z.string().email() });
 
 export const ResetPasswordSchema = z.object({
   token: z.string(),
-  new_password: z.string().min(8).max(128),
+  new_password: z.string().min(project.password.minLength).max(project.password.maxLength),
 });
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -107,7 +108,7 @@ export const authService = {
     const token = generateToken();
     await userRepository.update(user.id, {
       resetToken: hashToken(token),
-      resetTokenExpiresAt: dayjs().add(1, "hour").toDate(),
+      resetTokenExpiresAt: dayjs().add(project.expiry.passwordResetHours, "hour").toDate(),
     });
 
     await sendPasswordResetEmail(user.email, token).catch(() => {});

@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { config } from "../config";
+import { project } from "../config/project";
 
 export interface TokenPayload {
   sub: string;
@@ -20,7 +21,7 @@ export function signRefreshToken(userId: string): string {
 
 export function signMfaPendingToken(userId: string): string {
   return jwt.sign({ sub: userId, type: "mfa_pending" }, config.JWT_ACCESS_SECRET, {
-    expiresIn: "5m",
+    expiresIn: project.mfaPendingTokenExpiresIn as `${number}m`,
   });
 }
 
@@ -46,13 +47,13 @@ export function issueTokenPair(userId: string) {
   return {
     access_token: signAccessToken(userId),
     refresh_token: signRefreshToken(userId),
-    token_type: "bearer" as const,
+    token_type: project.tokenType,
   };
 }
 
 export function issueMfaPendingToken(userId: string) {
   return {
     mfa_pending: signMfaPendingToken(userId),
-    expires_in: 300,
+    expires_in: project.mfaPendingExpiresInSeconds,
   };
 }

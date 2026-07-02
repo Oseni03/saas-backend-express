@@ -1,10 +1,11 @@
 import Redis from "ioredis";
 import { config } from "../config";
+import { project } from "../config/project";
 import { logger } from "./logger";
 
 export const redis = new Redis(config.REDIS_URL, {
   lazyConnect: true,
-  maxRetriesPerRequest: 3,
+  maxRetriesPerRequest: project.redisMaxRetries,
 });
 
 redis.on("connect", () => logger.info("redis.connected"));

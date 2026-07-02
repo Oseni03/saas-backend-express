@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { config } from "../config";
+import { project } from "../config/project";
 import { logger } from "./logger";
 
 const resend = new Resend(config.RESEND_API_KEY);
@@ -35,7 +36,7 @@ export async function sendVerificationEmail(
     `<h2>Welcome to ${config.APP_NAME}, ${fullName || "there"}!</h2>
      <p>Click below to verify your email address:</p>
      <p><a href="${url}" style="padding:10px 20px;background:#4F46E5;color:white;border-radius:6px;text-decoration:none;">Verify Email</a></p>
-     <p>This link expires in 24 hours.</p>`
+      <p>This link expires in ${project.expiry.verificationHours} hours.</p>`
   );
 }
 
@@ -45,7 +46,7 @@ export async function sendPasswordResetEmail(to: string, token: string): Promise
     to,
     `Reset your password — ${config.APP_NAME}`,
     `<h2>Password Reset</h2>
-     <p>Click below to reset your password. Expires in 1 hour.</p>
+     <p>Click below to reset your password. Expires in ${project.expiry.passwordResetHours} hour(s).</p>
      <p><a href="${url}" style="padding:10px 20px;background:#4F46E5;color:white;border-radius:6px;text-decoration:none;">Reset Password</a></p>
      <p>If you didn't request this, ignore this email.</p>`
   );
@@ -65,7 +66,7 @@ export async function sendInvitationEmail(
     `<h2>You've been invited!</h2>
      <p><strong>${invitedBy}</strong> invited you to join <strong>${orgName}</strong> as a <strong>${role}</strong>.</p>
      <p><a href="${url}" style="padding:10px 20px;background:#4F46E5;color:white;border-radius:6px;text-decoration:none;">Accept Invitation</a></p>
-     <p>This invitation expires in 7 days.</p>`
+     <p>This invitation expires in ${project.expiry.invitationDays} days.</p>`
   );
 }
 

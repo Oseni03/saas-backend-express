@@ -1,3 +1,5 @@
+import { project } from "../config/project";
+
 export interface PagedResponse<T> {
   items: T[];
   total: number;
@@ -27,7 +29,7 @@ export interface PaginationQuery {
 }
 
 export function parsePagination(query: Record<string, unknown>): PaginationQuery {
-  const limit = Math.min(Number(query.limit) || 20, 100);
+  const limit = Math.min(Number(query.limit) || project.pagination.defaultLimit, project.pagination.maxLimit);
   const offset = Math.max(Number(query.offset) || 0, 0);
   return { limit, offset };
 }

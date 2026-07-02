@@ -10,6 +10,7 @@ import { userRepository } from "../repositories/userRepository";
 import { invitationRepository } from "../repositories/invitationRepository";
 import { prisma } from "../lib/prisma";
 import { logger } from "../lib/logger";
+import { project } from "../config/project";
 import {
   BadRequestError,
   ConflictError,
@@ -100,7 +101,7 @@ export const orgService = {
       role: input.role,
       token: hashToken(rawToken),
       invitedById: actorId,
-      expiresAt: dayjs().add(7, "days").toDate(),
+      expiresAt: dayjs().add(project.expiry.invitationDays, "days").toDate(),
     });
 
     const actor = await userRepository.findById(actorId);

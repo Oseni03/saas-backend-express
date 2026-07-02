@@ -4,6 +4,7 @@ import axios from "axios";
 import { OAuthProvider } from "@/generated/prisma";
 import { authService } from "../../services/authService";
 import { config } from "../../config";
+import { project } from "../../config/project";
 import { BadRequestError } from "../../middleware/errors";
 
 const router = Router();
@@ -14,13 +15,13 @@ router.get("/google", (_req, res) => {
   if (!config.GOOGLE_CLIENT_ID) throw new BadRequestError("Google OAuth is not configured");
   const params = new URLSearchParams({
     client_id: config.GOOGLE_CLIENT_ID,
-    redirect_uri: `${config.APP_BASE_URL}/api/v1/oauth/google/callback`,
+    redirect_uri: `${config.APP_BASE_URL}${project.apiPrefix}/oauth/google/callback`,
     response_type: "code",
-    scope: "openid email profile",
-    access_type: "offline",
+    scope: project.oauth.google.scope,
+    access_type: project.oauth.google.accessType,
   });
   res.json({
-    authorization_url: `https://accounts.google.com/o/oauth2/v2/auth?${params}`,
+    authorization_url: `${project.oauth.google.authUrl}?${params}`,
   });
 });
 
@@ -29,15 +30,15 @@ router.get("/google/callback", async (req: Request, res: Response, next: NextFun
     const { code } = req.query as { code: string };
     if (!code) throw new BadRequestError("Missing code");
 
-    const tokenRes = await axios.post("https://oauth2.googleapis.com/token", {
+    const tokenRes = await axios.post(project.oauth.google.tokenUrl, {
       code,
       client_id: config.GOOGLE_CLIENT_ID,
       client_secret: config.GOOGLE_CLIENT_SECRET,
-      redirect_uri: `${config.APP_BASE_URL}/api/v1/oauth/google/callback`,
+      redirect_uri: `${config.APP_BASE_URL}${project.apiPrefix}/oauth/google/callback`,
       grant_type: "authorization_code",
     });
 
-    const userinfoRes = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
+    const userinfoRes = await axios.get(project.oauth.google.userinfoUrl, {
       headers: { Authorization: `Bearer ${tokenRes.data.access_token}` },
     });
     const info = userinfoRes.data;
@@ -62,11 +63,11 @@ router.get("/github", (_req, res) => {
   if (!config.GITHUB_CLIENT_ID) throw new BadRequestError("GitHub OAuth is not configured");
   const params = new URLSearchParams({
     client_id: config.GITHUB_CLIENT_ID,
-    redirect_uri: `${config.APP_BASE_URL}/api/v1/oauth/github/callback`,
-    scope: "read:user user:email",
+    redirect_uri: `${config.APP_BASE_URL}${project.apiPrefix}/oauth/github/callback`,
+    scope: project.oauth.github.scope,
   });
   res.json({
-    authorization_url: `https://github.com/login/oauth/authorize?${params}`,
+    authorization_url: `${project.oauth.github.authUrl}?${params}`,
   });
 });
 
@@ -76,22 +77,22 @@ router.get("/github/callback", async (req: Request, res: Response, next: NextFun
     if (!code) throw new BadRequestError("Missing code");
 
     const tokenRes = await axios.post(
-      "https://github.com/login/oauth/access_token",
+      project.oauth.github.tokenUrl,
       {
         client_id: config.GITHUB_CLIENT_ID,
         client_secret: config.GITHUB_CLIENT_SECRET,
         code,
-        redirect_uri: `${config.APP_BASE_URL}/api/v1/oauth/github/callback`,
+        redirect_uri: `${config.APP_BASE_URL}${project.apiPrefix}/oauth/github/callback`,
       },
-      { headers: { Accept: "application/json" } }
+      { headers: { Accept: project.oauth.github.acceptHeader } }
     );
 
     const accessToken: string = tokenRes.data.access_token;
     const headers = { Authorization: `Bearer ${accessToken}` };
 
     const [userRes, emailsRes] = await Promise.all([
-      axios.get("https://api.github.com/user", { headers }),
-      axios.get("https://api.github.com/user/emails", { headers }),
+      axios.get(project.oauth.github.userUrl, { headers }),
+      axios.get(project.oauth.github.emailsUrl, { headers }),
     ]);
 
     const profile = userRes.data;
